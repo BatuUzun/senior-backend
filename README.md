@@ -108,4 +108,19 @@ BEFORE INSERT ON conversations
 FOR EACH ROW
 EXECUTE FUNCTION enforce_user_order();
 
+# Cassandra
+
+CREATE KEYSPACE IF NOT EXISTS chat_system WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'};
+
+use chat_system;
+
+CREATE TABLE chat_messages (
+    conversation_id BIGINT,        
+    message_id TIMEUUID,           
+    sender_id BIGINT,             
+    receiver_id BIGINT,          
+    message TEXT,               
+    sent_at TIMESTAMP,            
+    PRIMARY KEY (conversation_id, message_id)
+) WITH CLUSTERING ORDER BY (message_id DESC);
 
