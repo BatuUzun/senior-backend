@@ -5,7 +5,6 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 
@@ -37,6 +36,8 @@ public class ApiGatewayConfiguration {
                         .uri("lb://favorite"))
                 .route("comment", r -> r.path("/comment/**")
                         .uri("lb://comment"))
+                .route("credentials", r -> r.path("/credentials/**")
+                        .uri("lb://credentials"))
                 .build();
     }
 
@@ -44,80 +45,15 @@ public class ApiGatewayConfiguration {
     public CorsWebFilter corsWebFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
-        // Amazon Services CORS Configuration
-        CorsConfiguration amazonServicesCors = new CorsConfiguration();
-        amazonServicesCors.setAllowedOrigins(Arrays.asList("http://localhost:8081", "https://your-frontend-url.com"));
-        amazonServicesCors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        amazonServicesCors.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        amazonServicesCors.setAllowCredentials(true);
-        source.registerCorsConfiguration("/amazon-services/**", amazonServicesCors);
+        // Define a global CORS configuration
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:8081", "http://localhost:3000"));
+        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        corsConfig.setAllowCredentials(true);
 
-        // Email Sender CORS Configuration
-        CorsConfiguration emailSenderCors = new CorsConfiguration();
-        emailSenderCors.setAllowedOrigins(Arrays.asList("http://localhost:8081", "https://your-frontend-url.com"));
-        emailSenderCors.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS"));
-        emailSenderCors.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        emailSenderCors.setAllowCredentials(true);
-        source.registerCorsConfiguration("/email-sender/**", emailSenderCors);
-
-        // Profile API CORS Configuration
-        CorsConfiguration profileApiCors = new CorsConfiguration();
-        profileApiCors.setAllowedOrigins(Arrays.asList("http://localhost:8081", "https://your-frontend-url.com"));
-        profileApiCors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        profileApiCors.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        profileApiCors.setAllowCredentials(true);
-        source.registerCorsConfiguration("/profile-api/**", profileApiCors);
-
-        // Profile Picture Downloader CORS Configuration
-        CorsConfiguration profilePictureDownloaderCors = new CorsConfiguration();
-        profilePictureDownloaderCors.setAllowedOrigins(Arrays.asList("http://localhost:8081", "https://your-frontend-url.com"));
-        profilePictureDownloaderCors.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS"));
-        profilePictureDownloaderCors.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        profilePictureDownloaderCors.setAllowCredentials(true);
-        source.registerCorsConfiguration("/profile-picture-downloader/**", profilePictureDownloaderCors);
-
-        // Search Profile CORS Configuration
-        CorsConfiguration searchProfileCors = new CorsConfiguration();
-        searchProfileCors.setAllowedOrigins(Arrays.asList("http://localhost:8081", "https://your-frontend-url.com"));
-        searchProfileCors.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS"));
-        searchProfileCors.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        searchProfileCors.setAllowCredentials(true);
-        source.registerCorsConfiguration("/search-profile/**", searchProfileCors);
-        
-        CorsConfiguration userFollow = new CorsConfiguration();
-        userFollow.setAllowedOrigins(Arrays.asList("http://localhost:8081", "https://your-frontend-url.com"));
-        userFollow.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        userFollow.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        userFollow.setAllowCredentials(true);
-        source.registerCorsConfiguration("/user-follow/**", userFollow);
-        
-        CorsConfiguration review = new CorsConfiguration();
-        review.setAllowedOrigins(Arrays.asList("http://localhost:8081", "https://your-frontend-url.com"));
-        review.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        review.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        review.setAllowCredentials(true);
-        source.registerCorsConfiguration("/review/**", review);
-        
-        CorsConfiguration like = new CorsConfiguration();
-        like.setAllowedOrigins(Arrays.asList("http://localhost:8081", "https://your-frontend-url.com"));
-        like.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        like.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        like.setAllowCredentials(true);
-        source.registerCorsConfiguration("/like/**", like);
-        
-        CorsConfiguration favorite = new CorsConfiguration();
-        favorite.setAllowedOrigins(Arrays.asList("http://localhost:8081", "https://your-frontend-url.com"));
-        favorite.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        favorite.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        favorite.setAllowCredentials(true);
-        source.registerCorsConfiguration("/favorite/**", favorite);
-        
-        CorsConfiguration comment = new CorsConfiguration();
-        comment.setAllowedOrigins(Arrays.asList("http://localhost:8081", "https://your-frontend-url.com"));
-        comment.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        comment.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        comment.setAllowCredentials(true);
-        source.registerCorsConfiguration("/comment/**", comment);
+        // Apply the CORS configuration globally
+        source.registerCorsConfiguration("/**", corsConfig);
 
         return new CorsWebFilter(source);
     }
