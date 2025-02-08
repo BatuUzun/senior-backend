@@ -71,38 +71,42 @@ public class LikeService {
 		dto.setUserId(like.getUserId());
 		dto.setSpotifyId(like.getSpotifyId());
 		dto.setCreatedAt(like.getCreatedAt().toString());
+		dto.setType(like.getType());
 		return dto;
 	}
 
+	
+	
 	public LikeResponseDTO addLike(LikeDTO likeDTO) {
-		Optional<Like> existingLike = likeRepository.findBySpotifyIdAndUserId(likeDTO.getSpotifyId(),
-				likeDTO.getUserId());
-		if (existingLike.isPresent()) {
-			throw new IllegalArgumentException("User already liked this content.");
-		}
+        Optional<Like> existingLike = likeRepository.findBySpotifyIdAndUserIdAndType(
+            likeDTO.getSpotifyId(), likeDTO.getUserId(), likeDTO.getType());
+        
+        if (existingLike.isPresent()) {
+            throw new IllegalArgumentException("User already liked this content.");
+        }
 
-		Like like = new Like();
-		like.setUserId(likeDTO.getUserId());
-		like.setSpotifyId(likeDTO.getSpotifyId());
-		Like savedLike = likeRepository.save(like);
+        Like like = new Like();
+        like.setUserId(likeDTO.getUserId());
+        like.setSpotifyId(likeDTO.getSpotifyId());
+        like.setType(likeDTO.getType());
+        Like savedLike = likeRepository.save(like);
+        
+        incrementLikesCount(likeDTO.getSpotifyId());
 
-		incrementLikesCount(likeDTO.getSpotifyId()); // Increment Redis count
-		return mapToResponseDTO(savedLike);
-	}
+        return mapToResponseDTO(savedLike);
+    }
 
-	@Transactional
-	public void removeLike(Long userId, String spotifyId) {
-	    Optional<Like> existingLike = likeRepository.findBySpotifyIdAndUserId(spotifyId, userId);
-	    if (existingLike.isEmpty()) {
-	        throw new IllegalArgumentException("Like does not exist."); // You can replace this with a silent return or custom response
-	    }
+	@Transactional	
+	public void removeLike(Long userId, String spotifyId, String type) {
+        Optional<Like> existingLike = likeRepository.findBySpotifyIdAndUserIdAndType(spotifyId, userId, type);
+        if (existingLike.isEmpty()) {
+            throw new IllegalArgumentException("Like does not exist.");
+        }
 
-	    // Remove the like from the database
-	    likeRepository.deleteBySpotifyIdAndUserId(spotifyId, userId);
+        likeRepository.deleteBySpotifyIdAndUserIdAndType(spotifyId, userId, type);
+        decrementLikesCountSafely(spotifyId);
 
-	    // Safely decrement the Redis count
-	    decrementLikesCountSafely(spotifyId);
-	}
+    }
 	
 	private void decrementLikesCountSafely(String spotifyId) {
 	    String key = REDIS_KEY_PREFIX + spotifyId;
@@ -132,6 +136,12 @@ public class LikeService {
 
 	public Optional<LikeResponseDTO> getLikeBySpotifyIdAndUserId(String spotifyId, Long userId) {
 		return likeRepository.findBySpotifyIdAndUserId(spotifyId, userId).map(this::mapToResponseDTO);
+	}
+
+	public Page<LikeResponseDTO> getLikesByUserIdAndType(Long userId, String type, int page) {
+	    return likeRepository
+	            .findByUserIdAndType(userId, type, PageRequest.of(page, Constants.PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt")))
+	            .map(this::mapToResponseDTO);
 	}
 
 }

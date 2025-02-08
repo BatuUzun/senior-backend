@@ -3,6 +3,7 @@ package com.like.dto;
 public class LikeResponseDTO {
     private Long userId;
     private String spotifyId;
+    private String type; // New field
     private String createdAt;
 
     // Getters and Setters
@@ -22,6 +23,14 @@ public class LikeResponseDTO {
         this.spotifyId = spotifyId;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public String getCreatedAt() {
         return createdAt;
     }
@@ -30,16 +39,12 @@ public class LikeResponseDTO {
         this.createdAt = createdAt;
     }
 
-	public LikeResponseDTO(Long userId, String spotifyId, String createdAt) {
-		super();
-		this.userId = userId;
-		this.spotifyId = spotifyId;
-		this.createdAt = createdAt;
-	}
+    public LikeResponseDTO(Long userId, String spotifyId, String type, String createdAt) {
+        this.userId = userId;
+        this.spotifyId = spotifyId;
+        this.type = type;
+        this.createdAt = createdAt;
+    }
 
-	public LikeResponseDTO() {
-		super();
-	}
-    
-    
+    public LikeResponseDTO() {}
 }

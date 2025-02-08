@@ -16,12 +16,15 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
 
     long countBySpotifyId(String spotifyId);
 
-    Optional<Like> findBySpotifyIdAndUserId(String spotifyId, Long userId);
+    Optional<Like> findBySpotifyIdAndUserIdAndType(String spotifyId, Long userId, String type);
 
-    void deleteBySpotifyIdAndUserId(String spotifyId, Long userId);
+    void deleteBySpotifyIdAndUserIdAndType(String spotifyId, Long userId, String type);
     
     @Query("SELECT l.spotifyId, COUNT(l) FROM Like l GROUP BY l.spotifyId")
     List<Object[]> countLikesBySpotifyId();
-
+    
+    Optional<Like> findBySpotifyIdAndUserId(String spotifyId, Long userId);
+    
+    Page<Like> findByUserIdAndType(Long userId, String type, Pageable pageable);
 
 }

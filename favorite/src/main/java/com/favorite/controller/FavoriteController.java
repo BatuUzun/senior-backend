@@ -47,11 +47,12 @@ public class FavoriteController {
     }
 
     // Get favorites by user ID
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/{userId}/{type}")
     public ResponseEntity<?> getFavoritesByUserId(
             @PathVariable Long userId,
+            @PathVariable String type,
             @RequestParam(defaultValue = "0") int page) {
-        Page<FavoriteResponseDTO> favorites = favoriteService.getFavoritesByUserId(userId, page);
+        Page<FavoriteResponseDTO> favorites = favoriteService.getFavoritesByUserIdAndType(userId, type, page);
         if (favorites.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No favorites found for user ID " + userId);
         }

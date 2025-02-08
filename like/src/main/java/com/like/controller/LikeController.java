@@ -35,11 +35,11 @@ public class LikeController {
 	    }
 	}
 
-    @DeleteMapping("/remove-like")
-    public ResponseEntity<Void> removeLike(@RequestParam Long userId, @RequestParam String spotifyId) {
-        likeService.removeLike(userId, spotifyId);
-        return ResponseEntity.noContent().build();
-    }
+	@DeleteMapping("/remove-like")
+	public ResponseEntity<Void> removeLike(@RequestParam Long userId, @RequestParam String spotifyId, @RequestParam String type) {
+	    likeService.removeLike(userId, spotifyId, type);
+	    return ResponseEntity.noContent().build();
+	}
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<Page<LikeResponseDTO>> getLikesByUserId(
@@ -58,8 +58,19 @@ public class LikeController {
     @GetMapping("/is-liked-by-user")
     public ResponseEntity<Optional<LikeResponseDTO>> getLikeBySpotifyIdAndUserId(
             @RequestParam String spotifyId,
-            @RequestParam Long userId) {
+            @RequestParam Long userId,
+            @RequestParam String type) {
         Optional<LikeResponseDTO> like = likeService.getLikeBySpotifyIdAndUserId(spotifyId, userId);
         return ResponseEntity.ok(like);
     }
+    
+    @GetMapping("/user/{userId}/type")
+    public ResponseEntity<Page<LikeResponseDTO>> getLikesByUserIdAndType(
+            @PathVariable Long userId,
+            @RequestParam String type,
+            @RequestParam(defaultValue = "0") int page) {
+        Page<LikeResponseDTO> likes = likeService.getLikesByUserIdAndType(userId, type, page);
+        return ResponseEntity.ok(likes);
+    }
+
 }
