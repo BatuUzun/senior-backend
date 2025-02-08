@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.like.constant.Constants;
@@ -33,36 +34,37 @@ public class LikeService {
 	// Initialize Redis with data on application startup
 	@PostConstruct
 	public void initializeLikesCache() {
-	    List<Object[]> likesData = likeRepository.countLikesBySpotifyId();
-	    for (Object[] row : likesData) {
-	        // Validate and cast row[0] (spotifyId) and row[1] (count)
-	        if (row[0] instanceof String && row[1] instanceof Long) {
-	            String spotifyId = (String) row[0];
-	            Long count = (Long) row[1];
-	            redisTemplate.opsForValue().set(REDIS_KEY_PREFIX + spotifyId, count);
-	        } else {
-	            throw new ClassCastException("Unexpected types: spotifyId=" + row[0].getClass() + ", count=" + row[1].getClass());
-	        }
-	    }
+		List<Object[]> likesData = likeRepository.countLikesBySpotifyId();
+		for (Object[] row : likesData) {
+			// Validate and cast row[0] (spotifyId) and row[1] (count)
+			if (row[0] instanceof String && row[1] instanceof Long) {
+				String spotifyId = (String) row[0];
+				Long count = (Long) row[1];
+				redisTemplate.opsForValue().set(REDIS_KEY_PREFIX + spotifyId, count);
+			} else {
+				throw new ClassCastException(
+						"Unexpected types: spotifyId=" + row[0].getClass() + ", count=" + row[1].getClass());
+			}
+		}
 	}
 
 	// Increment the likes count in Redis when a new like is added
 	public void incrementLikesCount(String spotifyId) {
-	    String key = REDIS_KEY_PREFIX + spotifyId;
-	    redisTemplate.opsForValue().increment(key, 1);
+		String key = REDIS_KEY_PREFIX + spotifyId;
+		redisTemplate.opsForValue().increment(key, 1);
 	}
 
 	public long getLikesCountBySpotifyId(String spotifyId) {
-	    String key = REDIS_KEY_PREFIX + spotifyId;
-	    Long count = redisTemplate.opsForValue().get(key);
+		String key = REDIS_KEY_PREFIX + spotifyId;
+		Long count = redisTemplate.opsForValue().get(key);
 
-	    if (count == null) {
-	        // Fallback to the database if the key is not present in Redis
-	        count = likeRepository.countBySpotifyId(spotifyId);
-	        redisTemplate.opsForValue().set(key, count);
-	    }
+		if (count == null) {
+			// Fallback to the database if the key is not present in Redis
+			count = likeRepository.countBySpotifyId(spotifyId);
+			redisTemplate.opsForValue().set(key, count);
+		}
 
-	    return count;
+		return count;
 	}
 
 	// Mapping method to convert Entity to Response DTO
@@ -75,56 +77,64 @@ public class LikeService {
 		return dto;
 	}
 
-	
-	
 	public LikeResponseDTO addLike(LikeDTO likeDTO) {
-        Optional<Like> existingLike = likeRepository.findBySpotifyIdAndUserIdAndType(
-            likeDTO.getSpotifyId(), likeDTO.getUserId(), likeDTO.getType());
-        
-        if (existingLike.isPresent()) {
-            throw new IllegalArgumentException("User already liked this content.");
-        }
+		Optional<Like> existingLike = likeRepository.findBySpotifyIdAndUserIdAndType(likeDTO.getSpotifyId(),
+				likeDTO.getUserId(), likeDTO.getType());
 
-        Like like = new Like();
-        like.setUserId(likeDTO.getUserId());
-        like.setSpotifyId(likeDTO.getSpotifyId());
-        like.setType(likeDTO.getType());
-        Like savedLike = likeRepository.save(like);
-        
-        incrementLikesCount(likeDTO.getSpotifyId());
+		if (existingLike.isPresent()) {
+			throw new IllegalArgumentException("User already liked this content.");
+		}
 
-        return mapToResponseDTO(savedLike);
-    }
+		Like like = new Like();
+		like.setUserId(likeDTO.getUserId());
+		like.setSpotifyId(likeDTO.getSpotifyId());
+		like.setType(likeDTO.getType());
 
-	@Transactional	
+		try {
+			Like savedLike = likeRepository.save(like);
+
+			incrementLikesCount(likeDTO.getSpotifyId());
+			return mapToResponseDTO(savedLike);
+
+		} catch (Exception e) {
+			return null;
+		}
+
+	}
+
+	@Transactional
 	public void removeLike(Long userId, String spotifyId, String type) {
-        Optional<Like> existingLike = likeRepository.findBySpotifyIdAndUserIdAndType(spotifyId, userId, type);
-        if (existingLike.isEmpty()) {
-            throw new IllegalArgumentException("Like does not exist.");
-        }
+		Optional<Like> existingLike = likeRepository.findBySpotifyIdAndUserIdAndType(spotifyId, userId, type);
+		if (existingLike.isEmpty()) {
+			throw new IllegalArgumentException("Like does not exist.");
+		}
 
-        likeRepository.deleteBySpotifyIdAndUserIdAndType(spotifyId, userId, type);
-        decrementLikesCountSafely(spotifyId);
+		try {
+			likeRepository.deleteBySpotifyIdAndUserIdAndType(spotifyId, userId, type);
+			decrementLikesCountSafely(spotifyId);
+		} catch (Exception e) {
 
-    }
-	
+		}
+
+	}
+
 	private void decrementLikesCountSafely(String spotifyId) {
-	    String key = REDIS_KEY_PREFIX + spotifyId;
-	    Long currentCount = redisTemplate.opsForValue().get(key);
+		String key = REDIS_KEY_PREFIX + spotifyId;
+		Long currentCount = redisTemplate.opsForValue().get(key);
 
-	    if (currentCount == null || currentCount <= 0) {
-	        // If no count exists or it's already 0, explicitly set the count to 0 in Redis
-	        redisTemplate.opsForValue().set(key, 0L);
-	        return;
-	    }
+		if (currentCount == null || currentCount <= 0) {
+			// If no count exists or it's already 0, explicitly set the count to 0 in Redis
+			redisTemplate.opsForValue().set(key, 0L);
+			return;
+		}
 
-	    // Decrement the count in Redis
-	    Long updatedCount = redisTemplate.opsForValue().decrement(key, 1);
+		// Decrement the count in Redis
+		Long updatedCount = redisTemplate.opsForValue().decrement(key, 1);
 
-	    // If the updated count becomes 0, ensure it's stored as 0 in Redis
-	    if (updatedCount != null && updatedCount <= 0) {
-	        redisTemplate.opsForValue().set(key, 0L);
-	    }
+		// If the updated count becomes 0, ensure it's stored as 0 in Redis
+		if (updatedCount != null && updatedCount <= 0) {
+			redisTemplate.opsForValue().set(key, 0L);
+		}
 	}
 
 	public Page<LikeResponseDTO> getLikesByUserId(Long userId, int page) {
@@ -139,9 +149,10 @@ public class LikeService {
 	}
 
 	public Page<LikeResponseDTO> getLikesByUserIdAndType(Long userId, String type, int page) {
-	    return likeRepository
-	            .findByUserIdAndType(userId, type, PageRequest.of(page, Constants.PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt")))
-	            .map(this::mapToResponseDTO);
+		return likeRepository
+				.findByUserIdAndType(userId, type,
+						PageRequest.of(page, Constants.PAGE_SIZE, Sort.by(Sort.Direction.DESC, "createdAt")))
+				.map(this::mapToResponseDTO);
 	}
 
 }

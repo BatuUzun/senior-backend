@@ -51,6 +51,8 @@ public class ApiGatewayConfiguration {
                                 .dedupeResponseHeader("Access-Control-Allow-Credentials", "RETAIN_UNIQUE"))
                                 //.filter(customLoggingFilter)) // Add any custom filters if necessary
                         .uri("lb://chat-send-websocket"))
+                .route("review-like", r -> r.path("/review-like/**")
+                        .uri("lb://review-like"))
                 .build();
     }
     
