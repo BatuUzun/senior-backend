@@ -38,9 +38,15 @@ public class ApiGatewayConfiguration {
                         .uri("lb://comment"))
                 .route("credentials", r -> r.path("/credentials/**")
                         .uri("lb://credentials"))
+                .route("conversation", r -> r.path("/conversation/**")
+                        .uri("lb://conversation"))
+                .route("chat-send", r -> r.path("/chat-send/**")
+                        .uri("lb://chat-send"))
+                .route("chat-search", r -> r.path("/chat-search/**")
+                        .uri("lb://chat-search"))
                 .build();
     }
-
+    
     @Bean
     public CorsWebFilter corsWebFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
