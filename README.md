@@ -83,7 +83,7 @@ CREATE TABLE conversations (
     user1 BIGINT NOT NULL,
     user2 BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_user_pair UNIQUE (LEAST(user1, user2), GREATEST(user1, user2))
+    CONSTRAINT unique_user_pair UNIQUE (user1, user2) -- Unique constraint on ordered pairs
 );
 
 -- Create the function to swap user1 and user2
