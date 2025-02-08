@@ -3,26 +3,28 @@ package com.foodrecipes.emailsender.service;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailSenderService {
-	private final JavaMailSender javaMailSender;
+	@Autowired
+	private JavaMailSender javaMailSender;
+	
 	private final Random rand = new Random();
 	private final int MAX = 999999;
 	private final int MIN = 100000;
-	private String SEND_EMAIL_FROM = "chitchattersservices@gmail.com";
 	
-	@Autowired
-	public EmailSenderService(JavaMailSender javaMailSender) {
-		this.javaMailSender = javaMailSender;
-		
-	}
+	@Value("${SEND_EMAIL_FROM}")
+    private String SEND_EMAIL_FROM;
+	
+	
 	@Async
 	public int verificationCodeEmailSender(String email, int code) {
 		
@@ -30,9 +32,9 @@ public class EmailSenderService {
 		MimeMessageHelper mimeMessageHelper = null;
 		
 		
-		final String VERIFY_EMAIL_TEXT = "Hello,"+"\nThank you for signing up with Yumbyte."
+		final String VERIFY_EMAIL_TEXT = "Hello,"+"\nThank you for signing up with Harmonia."
 				+ " To complete the registration process, please use the following verification code:"
-				+ "\nVerification Code: "+code+"\n\nYumbyte Team.";
+				+ "\nVerification Code: "+code+"\n\nHarmonia Team.";
 		
 		final String VERIFY_EMAIL_SUBJECT = "Verify your email";
 		
@@ -50,13 +52,13 @@ public class EmailSenderService {
 		MimeMessageHelper mimeMessageHelper = null;
 		
 		
-		final String EMAIL_SUBJECT = "Reset Your Yumbyte Password";
+		final String EMAIL_SUBJECT = "Reset Your Harmonia Password";
 	    final String EMAIL_BODY = "Dear User,\n\n" +
-	                              "We received a request to reset the password for your Yumbyte account. " +
+	                              "We received a request to reset the password for your Harmonia account. " +
 	                              "Please use the verification code below to complete the password reset process:\n\n" +
 	                              "Verification Code: " + code + "\n\n" +
 	                              "Best regards,\n" +
-	                              "The Yumbyte Team";
+	                              "The Harmonia Team";
 		
 		
 		prepareEmailContent(mimeMessageHelper, mimeMessage, email, EMAIL_BODY, EMAIL_SUBJECT);
@@ -82,7 +84,7 @@ public class EmailSenderService {
 		
 		try {
 			mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
-			mimeMessageHelper.setFrom(SEND_EMAIL_FROM );
+			mimeMessageHelper.setFrom(SEND_EMAIL_FROM);
 			mimeMessageHelper.setTo(email);
 			mimeMessageHelper.setText(VERIFY_EMAIL_TEXT);
 			mimeMessageHelper.setSubject(VERIFY_EMAIL_SUBJECT);
