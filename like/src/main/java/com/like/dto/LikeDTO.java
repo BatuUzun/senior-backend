@@ -3,6 +3,7 @@ package com.like.dto;
 public class LikeDTO {
     private Long userId;
     private String spotifyId;
+    private String type; // New field
 
     // Getters and Setters
     public Long getUserId() {
@@ -21,16 +22,19 @@ public class LikeDTO {
         this.spotifyId = spotifyId;
     }
 
-	public LikeDTO(Long userId, String spotifyId) {
-		super();
-		this.userId = userId;
-		this.spotifyId = spotifyId;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public LikeDTO() {
-		super();
-	}
-    
-    
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public LikeDTO(Long userId, String spotifyId, String type) {
+        this.userId = userId;
+        this.spotifyId = spotifyId;
+        this.type = type;
+    }
+
+    public LikeDTO() {}
 }
-

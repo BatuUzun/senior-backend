@@ -23,6 +23,9 @@ public class Like {
     @Column(name = "spotify_id", nullable = false)
     private String spotifyId;
 
+    @Column(name = "type", nullable = false)
+    private String type; // New column
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -51,6 +54,14 @@ public class Like {
         this.spotifyId = spotifyId;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -59,17 +70,13 @@ public class Like {
         this.createdAt = createdAt;
     }
 
-	public Like(Long id, Long userId, String spotifyId, LocalDateTime createdAt) {
-		super();
-		this.id = id;
-		this.userId = userId;
-		this.spotifyId = spotifyId;
-		this.createdAt = createdAt;
-	}
+    public Like(Long id, Long userId, String spotifyId, String type, LocalDateTime createdAt) {
+        this.id = id;
+        this.userId = userId;
+        this.spotifyId = spotifyId;
+        this.type = type;
+        this.createdAt = createdAt;
+    }
 
-	public Like() {
-		super();
-	}
-    
-    
+    public Like() {}
 }
