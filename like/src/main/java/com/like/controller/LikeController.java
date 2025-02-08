@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.like.dto.LikeByUserDTO;
 import com.like.dto.LikeDTO;
 import com.like.dto.LikeResponseDTO;
+import com.like.dto.LikesBySpotifyIdDTO;
+import com.like.dto.RemoveLikeDTO;
 import com.like.service.LikeService;
 
 @RestController
@@ -36,10 +39,10 @@ public class LikeController {
 	}
 
 	@DeleteMapping("/remove-like")
-	public ResponseEntity<Void> removeLike(@RequestParam Long userId, @RequestParam String spotifyId, @RequestParam String type) {
-	    likeService.removeLike(userId, spotifyId, type);
-	    return ResponseEntity.noContent().build();
-	}
+    public ResponseEntity<Void> removeLike(@RequestBody RemoveLikeDTO removeLikeDTO) {
+        likeService.removeLike(removeLikeDTO.getUserId(), removeLikeDTO.getSpotifyId(), removeLikeDTO.getType());
+        return ResponseEntity.noContent().build();
+    }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<Page<LikeResponseDTO>> getLikesByUserId(
@@ -49,18 +52,16 @@ public class LikeController {
         return ResponseEntity.ok(likes);
     }
 
-    @GetMapping("/count")
-    public ResponseEntity<Long> getLikesCountBySpotifyId(@RequestParam String spotifyId) {
-        long count = likeService.getLikesCountBySpotifyId(spotifyId);
+    @PostMapping("/count")
+    public ResponseEntity<Long> getLikesCountBySpotifyId(@RequestBody LikesBySpotifyIdDTO request) {
+        long count = likeService.getLikesCountBySpotifyId(request.getSpotifyId());
         return ResponseEntity.ok(count);
     }
 
-    @GetMapping("/is-liked-by-user")
+    @PostMapping("/is-liked-by-user")
     public ResponseEntity<Optional<LikeResponseDTO>> getLikeBySpotifyIdAndUserId(
-            @RequestParam String spotifyId,
-            @RequestParam Long userId,
-            @RequestParam String type) {
-        Optional<LikeResponseDTO> like = likeService.getLikeBySpotifyIdAndUserId(spotifyId, userId);
+            @RequestBody LikeByUserDTO request) {
+        Optional<LikeResponseDTO> like = likeService.getLikeBySpotifyIdAndUserId(request.getSpotifyId(), request.getUserId());
         return ResponseEntity.ok(like);
     }
     
