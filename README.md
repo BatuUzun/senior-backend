@@ -76,3 +76,36 @@ CREATE TABLE review_comments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+-- Create the conversations table
+CREATE TABLE conversations (
+    id BIGSERIAL PRIMARY KEY,
+    user1 BIGINT NOT NULL,
+    user2 BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_user_pair UNIQUE (LEAST(user1, user2), GREATEST(user1, user2))
+);
+
+-- Create the function to swap user1 and user2
+CREATE OR REPLACE FUNCTION enforce_user_order()
+RETURNS TRIGGER AS $$
+DECLARE
+    temp BIGINT;  -- Declare temp variable BEFORE BEGIN
+BEGIN
+    IF NEW.user1 > NEW.user2 THEN
+        -- Swap user1 and user2 to ensure order
+        temp := NEW.user1;
+        NEW.user1 := NEW.user2;
+        NEW.user2 := temp;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create the trigger that calls the function before insert
+CREATE TRIGGER before_insert_conversations
+BEFORE INSERT ON conversations
+FOR EACH ROW
+EXECUTE FUNCTION enforce_user_order();
+
+
