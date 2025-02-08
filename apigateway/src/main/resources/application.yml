@@ -1,0 +1,55 @@
+server:
+  servlet:
+    context-path: /
+  port:
+    8765
+spring:
+  profiles:
+    active:
+      - ${ACTIVE_SPRING_PROFILE:dev}
+  application:
+    name: api-gateway
+springdoc:
+  enable-native-support: true
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    config-url: /v3/api-docs/swagger-config
+    urls:
+      - url: /v3/api-docs
+        name: API Gateway Service
+      - url: /create-recipe/v3/api-docs
+        name: create-recipe
+      - url: /credentials/v3/api-docs
+        name: credentials
+      - url: /email-sender/v3/api-docs
+        name: email-sender
+      - url: /profile-api/v3/api-docs
+        name: profile-api
+      - url: /profile-picture-downloader/v3/api-docs
+        name: profile-picture-downloader
+      - url: /recipe-picture-downloader/v3/api-docs
+        name: recipe-picture-downloader
+      - url: /search-profile/v3/api-docs
+        name: search-profile
+      - url: /profile-recipe/v3/api-docs
+        name: profile-recipe
+      - url: /recipe-getter/v3/api-docs
+        name: recipe-getter
+      - url: /like-dislike/v3/api-docs
+        name: like-dislike
+      - url: /favorite/v3/api-docs
+        name: favorite
+      - url: /search-recipe/v3/api-docs
+        name: search-recipe
+      - url: /click/v3/api-docs
+        name: click
+      - url: /comment/v3/api-docs
+        name: comment
+      - url: /profile-getter/v3/api-docs
+        name: profile-getter
+      - url: /feed-following-getter/v3/api-docs
+        name: feed-following-getter
+        
