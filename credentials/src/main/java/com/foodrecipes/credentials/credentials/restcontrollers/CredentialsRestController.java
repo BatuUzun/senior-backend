@@ -1,7 +1,8 @@
 package com.foodrecipes.credentials.credentials.restcontrollers;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.foodrecipes.credentials.credentials.constants.Constants;
 import com.foodrecipes.credentials.credentials.dto.AuthenticationDTO;
@@ -41,133 +41,149 @@ public class CredentialsRestController {
     private PasswordService passwordService;
 	@Autowired
 	private TokenService tokenService;
-	@Autowired
-	private Environment environment;
 
-    @PostMapping("/create-user/")
-    public ResponseEntity<String> createUser(@RequestBody UserProfileDTO userProfileDTO) {
-    	
-    	if(!userProfileDTO.isNullOrEmpty()) {
-    		if(userProfileDTO.getPassword().length() >= Constants.MINIMUM_PASSWORD_SIZE) {
-    			User user = new User();
-            user.setEmail(userProfileDTO.getEmail());
-            
-            UserProfile userProfile = new UserProfile();
-            userProfile.setUsername(userProfileDTO.getUsername());
-            
-            if(userService.isUserExist(user)) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("User with this email already exists");
-            }
-            if(userProfileService.isUserProfileExist(userProfile)) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("User with this username already exists");
-            }
-            if(!userProfileDTO.getPassword().startsWith(PasswordUtils.BCRYPT_PATTERN)) {
-            	user.setPassword(userService.hashPassword(userProfileDTO.getPassword()).substring(PasswordUtils.BCRYPT_PATTERN_SIZE));
-            }
-            else {
-                user.setPassword(userProfileDTO.getPassword().substring(PasswordUtils.BCRYPT_PATTERN_SIZE));
-            }
-            
-            //userProfile.setProfilePicture(userProfileDTO.getProfilePicture());
-            String port = environment.getProperty("local.server.port");
-            System.out.println("port: " + port);
-            
-            user = userService.createUser(user);
-            userProfile.setUser(user);
-            userProfile.setProfilePicture(Constants.DEFAULT_PROFILE_IMAGE);
-            userProfileService.createUserProfile(userProfile);
-            
-            return ResponseEntity.status(HttpStatus.CREATED).body("User is successfully created");
-    		}
-    		else {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Password should contain minimum "+ Constants.MINIMUM_PASSWORD_SIZE +" characters");
-    		}
-    		
-    		
-    	}
-    	
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Something is wrong");
-    }
+	@PostMapping("/create-user/")
+	public ResponseEntity<String> createUser(@RequestBody UserProfileDTO userProfileDTO) {
+
+	    if (userProfileDTO == null || userProfileDTO.isNullOrEmpty()) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request data");
+	    }
+
+	    if (userProfileDTO.getPassword().length() < Constants.MINIMUM_PASSWORD_SIZE) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT)
+	                .body("Password should contain a minimum of " + Constants.MINIMUM_PASSWORD_SIZE + " characters");
+	    }
+
+	    // Check if email already exists
+	    if (userService.isUserExist(userProfileDTO.getEmail())) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT).body("User with this email already exists");
+	    }
+
+	    // Check if username already exists
+	    if (userProfileService.isUserProfileExist(userProfileDTO.getUsername())) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT).body("User with this username already exists");
+	    }
+
+	    // Create a new User entity
+	    User user = new User();
+	    user.setEmail(userProfileDTO.getEmail());
+
+	    // Hash the password if not already hashed
+	    if (!userProfileDTO.getPassword().startsWith(PasswordUtils.BCRYPT_PATTERN)) {
+	        user.setPassword(userService.hashPassword(userProfileDTO.getPassword()).substring(PasswordUtils.BCRYPT_PATTERN_SIZE));
+	    } else {
+	        user.setPassword(userProfileDTO.getPassword().substring(PasswordUtils.BCRYPT_PATTERN_SIZE));
+	    }
+
+	    // Create a new UserProfile entity
+	    UserProfile userProfile = new UserProfile();
+	    userProfile.setUsername(userProfileDTO.getUsername());
+	    userProfile.setProfileImage(Constants.DEFAULT_PROFILE_IMAGE);
+
+	    // Save User
+	    user = userService.createUser(user);
+	    userProfile.setUser(user);
+
+	    // Save UserProfile
+	    userProfileService.createUserProfile(userProfile);
+
+	    // Log the server port (useful for debugging in local environment)
+
+	    return ResponseEntity.status(HttpStatus.CREATED).body("User successfully created");
+	}
+
 	
+    
+    
     @GetMapping("/get-user-email/")
-    public User getUserByEmail(@RequestParam String email) {
-    	User user = userService.findUserByEmail(email);
-    	String port = environment.getProperty("local.server.port");
-        user.setEnvironment(port);
-    	return user;
-    }
-    
-    @PostMapping("/check-login-credentials/")
-    public User checkLoginCredentials(@RequestBody AuthenticationDTO authenticationDTO) {
-    	User target = userService.findUserByEmail(authenticationDTO.getEmail());
-    	if(target == null) {
-    		return null;
-    	}
-    	StringBuilder pw = new StringBuilder(PasswordUtils.BCRYPT_PATTERN);
-    	pw.append(target.getPassword());
-    	System.out.println(pw.toString());
-    	if(passwordService.matchPasswords(authenticationDTO.getPassword(), pw.toString())) {
-            //userService.updateToken(target.getEmail(), user.getToken());
-    		if(authenticationDTO.getToken()!= null && authenticationDTO.getToken().trim().length() != 0) {
-    			System.out.println("here");
-    			Token tk = new Token(authenticationDTO.getToken(), target);
-    			tokenService.addToken(tk);
-    		}
-            
-    		/*if(!target.isVerified()) {
-            	// Call email service
-            }*/
-    		return target;
-    	}
-    	return null;
-    }
-    
-    @GetMapping("/get-user-token/")
-    public User getUserByToken(@RequestParam String token) {
-    	Token tokenTarget = tokenService.findToken(token);
-    	if(tokenTarget == null) {
-    		return null;
-    	}
-    	User user = userService.findUserById(tokenTarget.getUser().getId());
-    	if(user != null) {
-    		/*if(!user.isVerified()) {
-    			// Call email service
-	    	}*/
-    		return user;
-    	}
-    	else {
-    		return null;
-    	}
-    }
-    
-    @PutMapping("/verify-email/")
-    public Boolean verifyEmail(@RequestParam String email) {
-    	User user = userService.findUserByEmail(email);
-    	if(user != null) {
-    		userService.updateVerified(email);
-    		return true;
-    	}
-    	else {
-    		return false;
-    	}
-    }
-    
-    @PostMapping("/change-profile-picture/")
-    public void changeProfilePicture(@RequestParam("file") MultipartFile file) {
-    	
-    	
-    	
-    }
-    
-    @GetMapping("/get-user-profile-by-token/")
-    public ResponseEntity<UserProfile> getUserProfileByToken(@RequestParam String token) {
-        UserProfile userProfile = userProfileService.getUserProfileByToken(token);
-        if (userProfile != null) {
-            return ResponseEntity.ok(userProfile);
+    public ResponseEntity<User> getUserByEmail(@RequestParam String email) {
+        Optional<User> user = userService.findUserByEmail(email);
+
+        if (user.isPresent()) {
+            return ResponseEntity.ok(user.get());
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
+    
+    @PostMapping("/check-login-credentials/")
+    public ResponseEntity<User> checkLoginCredentials(@RequestBody AuthenticationDTO authenticationDTO) {
+
+        Optional<User> targetOptional = userService.findUserByEmail(authenticationDTO.getEmail());
+
+        if (targetOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        User target = targetOptional.get();
+        StringBuilder pw = new StringBuilder(PasswordUtils.BCRYPT_PATTERN);
+        pw.append(target.getPassword());
+        
+        System.out.println(pw.toString());
+
+        if (passwordService.matchPasswords(authenticationDTO.getPassword(), pw.toString())) {
+            if (authenticationDTO.getToken() != null && !authenticationDTO.getToken().trim().isEmpty()) {
+                System.out.println("here");
+                Token tk = new Token(authenticationDTO.getToken(), target);
+                tokenService.addToken(tk);
+            }
+
+            /*if (!target.isVerified()) {
+                // Call email service
+            }*/
+
+            return ResponseEntity.ok(target);
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+    }
+
+    
+    @GetMapping("/get-user-token/")
+    public ResponseEntity<User> getUserByToken(@RequestParam String token) {
+        Token tokenTarget= tokenService.findToken(token);
+
+        if (tokenTarget == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        Optional<User> userOptional = userService.findUserById(tokenTarget.getUser().getId());
+
+        if (userOptional.isPresent()) {
+            /*if (!userOptional.get().isVerified()) {
+                // Call email service
+            }*/
+            return ResponseEntity.ok(userOptional.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    
+    @PutMapping("/verify-email/")
+    public ResponseEntity<Boolean> verifyEmail(@RequestParam String email) {
+        Optional<User> userOptional = userService.findUserByEmail(email);
+
+        if (userOptional.isPresent()) {
+            userService.updateVerified(email);
+            return ResponseEntity.ok(true);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+        }
+    }
+    
+    @GetMapping("/get-user-profile-by-token/")
+    public ResponseEntity<UserProfile> getUserProfileByToken(@RequestParam String token) {
+        Optional<UserProfile> userProfileOptional = userProfileService.getUserProfileByToken(token);
+
+        if (userProfileOptional.isPresent()) {
+            return ResponseEntity.ok(userProfileOptional.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
     
     @DeleteMapping("/delete-token")
     public void deleteToken(@RequestParam Long userId, @RequestParam String token) {
@@ -175,35 +191,45 @@ public class CredentialsRestController {
     }
     
     @GetMapping("/exists-by-email/{email}")
-    public boolean userExistsByEmail(@PathVariable String email) {
-        return userService.userExists(email);
+    public ResponseEntity<Boolean> userExistsByEmail(@PathVariable String email) {
+        boolean exists = userService.isUserExist(email);
+
+        if (exists) {
+            return ResponseEntity.ok(true);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+        }
     }
+
     
     @PostMapping("/change-password")
-    public boolean changePassword(@RequestBody ChangePasswordRequest request) {
-    	if(request.getNewPassword().length() < Constants.MINIMUM_PASSWORD_SIZE) {
-    		return false;
-    	}
-        User user = userService.findUserByEmail(request.getEmail());
-        
-        if(user == null) {
-        	return false;
+    public ResponseEntity<Boolean> changePassword(@RequestBody ChangePasswordRequest request) {
+        if (request.getNewPassword().length() < Constants.MINIMUM_PASSWORD_SIZE) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(false);
         }
-        
-        if(!request.getNewPassword().startsWith(PasswordUtils.BCRYPT_PATTERN)) {
-        	user.setPassword(userService.hashPassword(request.getNewPassword()).substring(PasswordUtils.BCRYPT_PATTERN_SIZE));
+
+        Optional<User> userOptional = userService.findUserByEmail(request.getEmail());
+
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
         }
-        else {
+
+        User user = userOptional.get();
+
+        if (!request.getNewPassword().startsWith(PasswordUtils.BCRYPT_PATTERN)) {
+            user.setPassword(userService.hashPassword(request.getNewPassword()).substring(PasswordUtils.BCRYPT_PATTERN_SIZE));
+        } else {
             user.setPassword(request.getNewPassword().substring(PasswordUtils.BCRYPT_PATTERN_SIZE));
         }
-        
+
         User updatedUser = userService.createUser(user);
-        
-        if(updatedUser == null) {
-        	return false;
+
+        if (updatedUser == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
         }
-        
-        return true;
+
+        return ResponseEntity.ok(true);
     }
+
     
 }
