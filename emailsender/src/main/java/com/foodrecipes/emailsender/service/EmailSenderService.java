@@ -21,7 +21,7 @@ public class EmailSenderService {
 	private final int MAX = 999999;
 	private final int MIN = 100000;
 	
-	@Value("${SEND_EMAIL_FROM}")
+	@Value("${spring.mail.username}")
     private String SEND_EMAIL_FROM;
 	
 	
