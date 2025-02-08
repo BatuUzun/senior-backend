@@ -58,6 +58,7 @@ CREATE TABLE likes (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     spotify_id VARCHAR(64) NOT NULL,
+    type VARCHAR(50) NOT NULL,  -- New column for type
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -65,6 +66,7 @@ CREATE TABLE favorite (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     spotify_id VARCHAR(64) NOT NULL,
+    type VARCHAR(50) NOT NULL,  -- New column for type
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
