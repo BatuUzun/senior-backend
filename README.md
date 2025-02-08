@@ -62,6 +62,15 @@ CREATE TABLE likes (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE review_likes (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    review_id BIGINT NOT NULL,  -- Changed from VARCHAR(64) to BIGINT
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_review FOREIGN KEY (review_id) REFERENCES review(id) ON DELETE CASCADE
+);
+
+
 CREATE TABLE favorite (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
