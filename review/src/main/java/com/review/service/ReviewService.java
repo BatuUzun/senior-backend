@@ -24,6 +24,13 @@ public class ReviewService {
     private ReviewRepository reviewRepository;
 
     public Review addReview(Review review) {
+        // Check if the user has already reviewed this Spotify ID
+        Optional<Review> existingReview = reviewRepository.findByUserIdAndSpotifyId(review.getUserId(), review.getSpotifyId());
+
+        if (existingReview.isPresent()) {
+            throw new IllegalStateException("User has already reviewed this Spotify ID");
+        }
+
         return reviewRepository.save(review);
     }
 
@@ -55,7 +62,9 @@ public class ReviewService {
         return reviewRepository.findBySpotifyIdWithReference(spotifyId, referenceTime, pageable);
     }
 
-
+    public Optional<Review> getUserReview(Long userId, String spotifyId) {
+        return reviewRepository.findByUserIdAndSpotifyId(userId, spotifyId);
+    }
 
 
     public Double calculateAverageRating(String spotifyId) {
@@ -78,4 +87,9 @@ public class ReviewService {
         Optional<Review> review = reviewRepository.findById(reviewId);
         return review.orElseThrow(() -> new IllegalArgumentException("Review with ID " + reviewId + " not found."));
     }
+    
+    public long getUserReviewCount(Long userId) {
+        return reviewRepository.countByUserId(userId);
+    }
+    
 }
