@@ -51,8 +51,10 @@ CREATE TABLE review (
     rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5), 
     comment TEXT,            
     spotify_id VARCHAR(64) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_user_review UNIQUE (user_id, spotify_id)
 );
+
 
 CREATE TABLE likes (
     id BIGSERIAL PRIMARY KEY,
