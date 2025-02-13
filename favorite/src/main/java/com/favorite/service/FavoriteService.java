@@ -1,15 +1,21 @@
 package com.favorite.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
 import com.favorite.constant.Constants;
 import com.favorite.dto.FavoriteDTO;
+import com.favorite.dto.FavoriteProfileResponseDTO;
 import com.favorite.dto.FavoriteResponseDTO;
 import com.favorite.entity.Favorite;
 import com.favorite.repository.FavoriteRepository;
+
 import jakarta.transaction.Transactional;
 
 @Service
@@ -64,5 +70,16 @@ public class FavoriteService {
                 favorite.getType(),
                 favorite.getCreatedAt()
         );
+    }
+    
+    public List<FavoriteProfileResponseDTO> getLatestFavorites(Long userId, String type) {
+        return favoriteRepository.findTop4ByUserIdAndType(userId, type)
+                .stream()
+                .map(favorite -> new FavoriteProfileResponseDTO(
+                        favorite.getId(),
+                        favorite.getSpotifyId(),
+                        favorite.getType(),
+                        favorite.getCreatedAt()))
+                .collect(Collectors.toList());
     }
 }

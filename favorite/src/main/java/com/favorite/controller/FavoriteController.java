@@ -1,5 +1,7 @@
 package com.favorite.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.favorite.dto.FavoriteDTO;
+import com.favorite.dto.FavoriteProfileResponseDTO;
 import com.favorite.dto.FavoriteResponseDTO;
 import com.favorite.service.FavoriteService;
 
@@ -69,5 +72,14 @@ public class FavoriteController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Spotify ID " + spotifyId + " is not favorited by user ID " + userId);
         }
+    }
+    
+    @GetMapping("/latest-profile")
+    public ResponseEntity<List<FavoriteProfileResponseDTO>> getLatestFavorites(
+            @RequestParam Long userId,
+            @RequestParam String type) {
+
+        List<FavoriteProfileResponseDTO> favorites = favoriteService.getLatestFavorites(userId, type);
+        return ResponseEntity.ok(favorites);
     }
 }

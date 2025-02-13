@@ -1,10 +1,15 @@
 package com.favorite.repository;
 
+import java.util.List;
 import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import com.favorite.constant.Constants;
 import com.favorite.entity.Favorite;
 
 public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
@@ -20,4 +25,9 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 
     // New query to get favorites by type
     Page<Favorite> findByUserIdAndType(Long userId, String type, Pageable pageable);
+    
+    // Fetch latest 4 favorites for a given user ID and type
+    @Query("SELECT f FROM Favorite f WHERE f.userId = :userId AND f.type = :type ORDER BY f.createdAt DESC LIMIT "+Constants.PAGE_SIZE_PROFILE)
+    List<Favorite> findTop4ByUserIdAndType(@Param("userId") Long userId, @Param("type") String type);
+
 }
