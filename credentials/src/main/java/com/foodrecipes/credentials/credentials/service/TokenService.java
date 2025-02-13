@@ -1,5 +1,7 @@
 package com.foodrecipes.credentials.credentials.service;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,9 +28,17 @@ public class TokenService {
 	}
 	
 	@Transactional
-	public void deleteToken(Long userId, String token) {
-        tokenRepository.deleteByUserIdAndToken(userId, token);
-    }
+	public boolean deleteToken(Long userId, String token) {
+	    Optional<Token> existingToken = tokenRepository.findByUserIdAndToken(userId, token);
+
+	    if (existingToken.isPresent()) {
+	        tokenRepository.deleteByUserIdAndToken(userId, token);
+	        return true;
+	    } else {
+	        return false;
+	    }
+	}
+
 	
 	
 }

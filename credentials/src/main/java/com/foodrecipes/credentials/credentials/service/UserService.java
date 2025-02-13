@@ -26,7 +26,7 @@ public class UserService {
 
     @Transactional
     public User createUser(User user) {
-        user.setPassword(hashPassword(user.getPassword())); // Ensure password is hashed
+        
         return userRepository.save(user);
     }
     
