@@ -40,6 +40,7 @@ CREATE TABLE user_follows (
     CONSTRAINT fk_follower FOREIGN KEY (follower_id) REFERENCES user_profiles(id) ON DELETE CASCADE,
     CONSTRAINT fk_followed FOREIGN KEY (followed_id) REFERENCES user_profiles(id) ON DELETE CASCADE
 );
+	ALTER TABLE user_follows ADD COLUMN date_followed TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
 
 
