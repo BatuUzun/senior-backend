@@ -36,11 +36,12 @@ CREATE TABLE tokens (
 CREATE TABLE user_follows (
     follower_id BIGINT NOT NULL,
     followed_id BIGINT NOT NULL,
+    date_followed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (follower_id, followed_id),
     CONSTRAINT fk_follower FOREIGN KEY (follower_id) REFERENCES user_profiles(id) ON DELETE CASCADE,
     CONSTRAINT fk_followed FOREIGN KEY (followed_id) REFERENCES user_profiles(id) ON DELETE CASCADE
 );
-	ALTER TABLE user_follows ADD COLUMN date_followed TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
 
 
 
