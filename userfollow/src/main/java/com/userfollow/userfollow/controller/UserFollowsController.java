@@ -1,5 +1,8 @@
 package com.userfollow.userfollow.controller;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.userfollow.userfollow.dto.FollowRequestDTO;
+import com.userfollow.userfollow.dto.UserProfileResponseDTO;
+import com.userfollow.userfollow.exception.ProxyServiceException;
 import com.userfollow.userfollow.service.UserFollowsService;
 
 @RestController
@@ -63,5 +68,25 @@ public class UserFollowsController {
     public ResponseEntity<Long> getFollowingCount(@RequestParam Long userProfileId) {
         long count = userFollowsService.getFollowingCount(userProfileId);
         return ResponseEntity.ok(count);
+    }
+    
+    @GetMapping("/followings")
+    public ResponseEntity<?> getFollowings(@RequestParam Long userId, @RequestParam(required = false) LocalDateTime cursor) {
+        try {
+            List<UserProfileResponseDTO> followings = userFollowsService.getFollowings(userId, cursor);
+            return ResponseEntity.ok(followings);
+        } catch (ProxyServiceException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/followers")
+    public ResponseEntity<?> getFollowers(@RequestParam Long userId, @RequestParam(required = false) LocalDateTime cursor) {
+        try {
+            List<UserProfileResponseDTO> followers = userFollowsService.getFollowers(userId, cursor);
+            return ResponseEntity.ok(followers);
+        } catch (ProxyServiceException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(e.getMessage());
+        }
     }
 }
