@@ -29,4 +29,13 @@ public class UserProfileService {
     public Optional<UserProfile> getUserProfileByToken(String token) {
         return userProfileRepository.findByToken(token);
     }
+    
+    public Optional<UserProfile> findByUserId(Long userId) {
+        return userProfileRepository.findByUserId(userId);
+    }
+    
+    public boolean existsByUserId(Long userId) {
+        return userProfileRepository.existsByUserId(userId);
+    }
+
 }

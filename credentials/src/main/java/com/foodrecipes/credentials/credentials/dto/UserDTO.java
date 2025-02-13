@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class AuthenticationDTO {
+public class UserDTO {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
@@ -13,8 +13,6 @@ public class AuthenticationDTO {
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
-
-    private boolean rememberMe; // Change from String token to boolean
 
     // Getters and Setters
     public String getEmail() {
@@ -31,13 +29,5 @@ public class AuthenticationDTO {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public boolean isRememberMe() {
-        return rememberMe;
-    }
-
-    public void setRememberMe(boolean rememberMe) {
-        this.rememberMe = rememberMe;
     }
 }

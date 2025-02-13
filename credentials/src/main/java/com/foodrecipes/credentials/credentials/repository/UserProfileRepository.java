@@ -22,4 +22,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
         WHERE t.token = :token
     """)
     Optional<UserProfile> findByToken(@Param("token") String token);
+    
+    boolean existsByUserId(Long userId);
+
 }

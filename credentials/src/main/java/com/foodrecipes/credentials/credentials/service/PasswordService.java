@@ -12,6 +12,7 @@ public class PasswordService {
 
 	
 	public boolean matchPasswords(String rawPassword, String encodedPassword) {
-        return passwordEncoder.matches(rawPassword, encodedPassword);
-    }
+	    return passwordEncoder.matches(rawPassword, encodedPassword);
+	}
+
 }
