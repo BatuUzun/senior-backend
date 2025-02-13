@@ -1,5 +1,6 @@
 package com.foodrecipes.profileapi.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,6 +27,8 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long>{
 	//List<UserProfile> findByIdIn(List<Long> ids);
 	
     Optional<UserProfile> findById(Long id); // Method to find user profile by ID
+
+    
 
 
 }

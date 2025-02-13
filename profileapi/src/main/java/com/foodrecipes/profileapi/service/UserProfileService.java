@@ -40,25 +40,7 @@ public class UserProfileService {
     	return userProfileRepository.findUserProfileImageById(id);
     }
     
-    /*public List<UserProfile> getUserProfilesInOrder(List<Long> ids) {
-        // Fetch all profiles by IDs
-        List<UserProfile> profiles = userProfileRepository.findByIdIn(ids);
-        
-        // Create a map for quick lookup
-        Map<Long, UserProfile> profileMap = profiles.stream()
-                .collect(Collectors.toMap(UserProfile::getId, profile -> profile));
-
-        // Order profiles according to the input IDs
-        List<UserProfile> orderedProfiles = new ArrayList<>();
-        for (Long id : ids) {
-            UserProfile profile = profileMap.get(id);
-            if (profile != null) {
-                orderedProfiles.add(profile);
-            }
-        }
-
-        return orderedProfiles;
-    */
+    
     
     public String getProfilePictureByUserId(Long userId) {
         return userProfileRepository.findById(userId)

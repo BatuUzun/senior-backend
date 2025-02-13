@@ -1,5 +1,7 @@
 package com.userfollow.userfollow.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,42 +22,27 @@ public class UserFollow {
     @Column(name = "followed_id", nullable = false)
     private Long followedId;
 
-	public Long getId() {
-		return id;
-	}
+    @Column(name = "date_followed", nullable = false)
+    private LocalDateTime dateFollowed = LocalDateTime.now();
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-	public Long getFollowerId() {
-		return followerId;
-	}
+    public Long getFollowerId() { return followerId; }
+    public void setFollowerId(Long followerId) { this.followerId = followerId; }
 
-	public void setFollowerId(Long followerId) {
-		this.followerId = followerId;
-	}
+    public Long getFollowedId() { return followedId; }
+    public void setFollowedId(Long followedId) { this.followedId = followedId; }
 
-	public Long getFollowedId() {
-		return followedId;
-	}
+    public LocalDateTime getDateFollowed() { return dateFollowed; }
+    public void setDateFollowed(LocalDateTime dateFollowed) { this.dateFollowed = dateFollowed; }
 
-	public void setFollowedId(Long followedId) {
-		this.followedId = followedId;
-	}
-	
-	
+    public UserFollow(Long id, Long followerId, Long followedId, LocalDateTime dateFollowed) {
+        this.id = id;
+        this.followerId = followerId;
+        this.followedId = followedId;
+        this.dateFollowed = dateFollowed;
+    }
 
-	public UserFollow() {
-		super();
-	}
-
-	public UserFollow(Long id, Long followerId, Long followedId) {
-		super();
-		this.id = id;
-		this.followerId = followerId;
-		this.followedId = followedId;
-	}
-    
-    
+    public UserFollow() {}
 }
