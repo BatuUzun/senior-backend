@@ -2,9 +2,12 @@ package com.userfollow.userfollow.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +34,11 @@ public class UserFollowsService {
 
 	private static final String FOLLOWER_COUNT_KEY = "followerCount:";
 	private static final String FOLLOWING_COUNT_KEY = "followingCount:";
+	
+	@Autowired
+    private StringRedisTemplate redisTemplateFollower;
+
+    private static final String FOLLOW_KEY_PREFIX = "user:following:";
 
 	@PostConstruct
 	public void initializeRedisCounts() {
@@ -52,6 +60,19 @@ public class UserFollowsService {
 			}
 		}
 	}
+	
+	@PostConstruct
+    public void initializeRedisWithFollowData() {
+        System.out.println("Initializing Redis with follow relationships...");
+
+        List<UserFollow> allFollows = userFollowsRepository.findAll();
+        for (UserFollow follow : allFollows) {
+            String key = FOLLOW_KEY_PREFIX + follow.getFollowerId();
+            redisTemplateFollower.opsForSet().add(key, follow.getFollowedId().toString());
+        }
+
+        System.out.println("Redis initialization completed.");
+    }
 
 	@Transactional
 	public String followUser(Long followerId, Long followedId) {
@@ -68,6 +89,9 @@ public class UserFollowsService {
 		userFollow.setFollowerId(followerId);
 		userFollow.setFollowedId(followedId);
 		userFollowsRepository.save(userFollow);
+		
+		redisTemplateFollower.opsForSet().add(FOLLOW_KEY_PREFIX + followerId, String.valueOf(followedId));
+
 
 		incrementRedisCount(FOLLOWER_COUNT_KEY + followedId);
 		incrementRedisCount(FOLLOWING_COUNT_KEY + followerId);
@@ -83,6 +107,7 @@ public class UserFollowsService {
 		}
 
 		userFollowsRepository.deleteByFollowerIdAndFollowedId(followerId, followedId);
+	    redisTemplateFollower.opsForSet().remove(FOLLOW_KEY_PREFIX + followerId, String.valueOf(followedId));
 
 		decrementRedisCount(FOLLOWER_COUNT_KEY + followedId);
 		decrementRedisCount(FOLLOWING_COUNT_KEY + followerId);
@@ -91,8 +116,24 @@ public class UserFollowsService {
 	}
 
 	public boolean isFollowing(Long followerId, Long followedId) {
-		return userFollowsRepository.existsByFollowerIdAndFollowedId(followerId, followedId);
+	    // Check Redis first
+	    Boolean existsInRedis = redisTemplateFollower.opsForSet().isMember(FOLLOW_KEY_PREFIX + followerId, String.valueOf(followedId));
+
+	    if (existsInRedis != null && existsInRedis) {
+	        return true; // User is following (cached in Redis)
+	    }
+
+	    // Fallback to MySQL (if Redis doesn't have the data)
+	    boolean existsInDB = userFollowsRepository.existsByFollowerIdAndFollowedId(followerId, followedId);
+
+	    // If found in MySQL, cache it in Redis for future checks
+	    if (existsInDB) {
+	        redisTemplateFollower.opsForSet().add(FOLLOW_KEY_PREFIX + followerId, String.valueOf(followedId));
+	    }
+
+	    return existsInDB;
 	}
+
 
 	public long getFollowerCount(Long userProfileId) {
 		String redisKey = FOLLOWER_COUNT_KEY + userProfileId;
@@ -167,5 +208,14 @@ public class UserFollowsService {
 			throw new ProxyServiceException("Profile API is currently unavailable. Please try again later.");
 		}
 	}
+	
+	public Set<Long> getFollowedUsers(Long userId) {
+	    Set<String> followedUsers = redisTemplateFollower.opsForSet().members(FOLLOW_KEY_PREFIX + userId);
+	    
+	    return followedUsers.stream()
+	                        .map(Long::valueOf)  // Convert each String to Long
+	                        .collect(Collectors.toSet());
+	}
+
 
 }
