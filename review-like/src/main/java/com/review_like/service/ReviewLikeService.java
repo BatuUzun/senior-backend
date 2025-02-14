@@ -1,17 +1,21 @@
 package com.review_like.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.review_like.constant.Constants;
 import com.review_like.dto.IsLikedResponseDto;
 import com.review_like.dto.ReviewLikeResponseDTO;
 import com.review_like.entity.Review;
@@ -36,6 +40,13 @@ public class ReviewLikeService {
     private RedisTemplate<String, Long> redisTemplate;
 
     private static final String REDIS_KEY_PREFIX = "review_likes:";
+    
+    private static final String REDIS_TOP_REVIEWS_PREFIX = "popular_reviews:";
+
+    private ZSetOperations<String, Long> getZSetOperations() {
+        return redisTemplate.opsForZSet();
+    }
+
 
     @PostConstruct
     public void initializeLikesCache() {
@@ -48,6 +59,23 @@ public class ReviewLikeService {
         }
         logger.info("✅ Redis cache initialized with likes count.");
     }
+    
+    @PostConstruct
+    public void initializePopularLikesCache() {
+        List<Object[]> likesData = reviewLikeRepository.findLikeCountsBySpotifyId(); // Fetch likes grouped by spotifyId
+
+        for (Object[] row : likesData) {
+            String spotifyId = (String) row[0]; // Get Spotify ID
+            Long reviewId = (Long) row[1];      // Get Review ID
+            Long count = (Long) row[2];         // Get Like Count
+
+            // Store most liked reviews in Redis Sorted Set for Spotify ID
+            getZSetOperations().add(REDIS_TOP_REVIEWS_PREFIX + spotifyId, reviewId, count);
+        }
+
+        logger.info("✅ Redis cache initialized with likes count and popular reviews.");
+    }
+
 
     @Transactional
     public ReviewLikeResponseDTO addReviewsLike(Long userId, Long reviewId) {
@@ -62,10 +90,11 @@ public class ReviewLikeService {
         }
 
         try {
-            reviewLikeRepository.save(new ReviewLike(userId, review));
+            ReviewLike l = reviewLikeRepository.save(new ReviewLike(userId, review));
             incrementReviewsLikesCount(review.getId());
+            updateTopReviewsInRedis(review.getSpotifyId(), review.getId(), 1); // Update Redis ZSET
 
-            return new ReviewLikeResponseDTO(true, "Like added successfully.", null, HttpStatus.OK);
+            return new ReviewLikeResponseDTO(true, "Like added successfully.", l.getId(), HttpStatus.OK);
         } catch (Exception e) {
             logger.error("Error while adding like: {}", e.getMessage());
             return new ReviewLikeResponseDTO(false, "Internal Server Error while adding the like.", null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -89,6 +118,7 @@ public class ReviewLikeService {
 
             // Decrement Redis count
             decrementReviewsLikesCountSafely(review.getId());
+            updateTopReviewsInRedis(review.getSpotifyId(), review.getId(), -1); // Update Redis ZSET
 
             return new ReviewLikeResponseDTO(true, "Like removed successfully.", null, HttpStatus.OK);
         } catch (Exception e) {
@@ -97,7 +127,20 @@ public class ReviewLikeService {
         }
     }
 
-    
+    private void updateTopReviewsInRedis(String spotifyId, Long reviewId, int delta) {
+        String redisKey = REDIS_TOP_REVIEWS_PREFIX + spotifyId;
+        ZSetOperations<String, Long> zSetOperations = getZSetOperations();
+
+        // Increment or decrement like count in Redis sorted set
+        Double currentScore = zSetOperations.score(redisKey, reviewId);
+        double newScore = (currentScore != null ? currentScore : 0) + delta;
+
+        if (newScore <= 0) {
+            zSetOperations.remove(redisKey, reviewId); // Remove if count becomes 0
+        } else {
+            zSetOperations.add(redisKey, reviewId, newScore); // Update count
+        }
+    }
 
     public ReviewLikeResponseDTO getReviewsLikeCount(Long reviewId) {
         String key = REDIS_KEY_PREFIX + reviewId;
@@ -123,6 +166,14 @@ public class ReviewLikeService {
 
         return ResponseEntity.ok(null); // Return null if review is not liked
     }
+    
+    public List<Long> getTop100PopularReviewsBySpotifyId(String spotifyId) {
+        String redisKey = REDIS_TOP_REVIEWS_PREFIX + spotifyId;
+        Set<Long> topReviews = getZSetOperations().reverseRange(redisKey, 0, Constants.POPULER_SIZE); // Fetch top 100
+
+        return (topReviews != null) ? new ArrayList<>(topReviews) : new ArrayList<>();
+    }
+
 
     private void decrementReviewsLikesCountSafely(Long reviewId) {
         String key = REDIS_KEY_PREFIX + reviewId;
