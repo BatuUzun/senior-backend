@@ -47,7 +47,6 @@ public class ReviewLikeService {
         return redisTemplate.opsForZSet();
     }
 
-
     @PostConstruct
     public void initializeLikesCache() {
         List<Object[]> likesData = reviewLikeRepository.countLikesByReviewId();
@@ -60,21 +59,6 @@ public class ReviewLikeService {
         logger.info("✅ Redis cache initialized with likes count.");
     }
     
-    @PostConstruct
-    public void initializePopularLikesCache() {
-        List<Object[]> likesData = reviewLikeRepository.findLikeCountsBySpotifyId(); // Fetch likes grouped by spotifyId
-
-        for (Object[] row : likesData) {
-            String spotifyId = (String) row[0]; // Get Spotify ID
-            Long reviewId = (Long) row[1];      // Get Review ID
-            Long count = (Long) row[2];         // Get Like Count
-
-            // Store most liked reviews in Redis Sorted Set for Spotify ID
-            getZSetOperations().add(REDIS_TOP_REVIEWS_PREFIX + spotifyId, reviewId, count);
-        }
-
-        logger.info("✅ Redis cache initialized with likes count and popular reviews.");
-    }
 
 
     @Transactional

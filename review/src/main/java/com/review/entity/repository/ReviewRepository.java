@@ -1,6 +1,7 @@
 package com.review.entity.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -33,5 +34,19 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Optional<Review> findByUserIdAndSpotifyId(Long userId, String spotifyId);
 
     long countByUserId(Long userId);
+    
+    @Query("""
+    	    SELECT r.spotifyId, 
+    	           r.id, 
+    	           COALESCE(COUNT(DISTINCT rl.id), 0) AS likeCount, 
+    	           COALESCE(COUNT(DISTINCT rc.id), 0) AS commentCount
+    	    FROM Review r
+    	    LEFT JOIN ReviewLike rl ON r.id = rl.review.id
+    	    LEFT JOIN ReviewComment rc ON r.id = rc.review.id
+    	    GROUP BY r.spotifyId, r.id
+    	    HAVING COUNT(DISTINCT rl.id) > 0 OR COUNT(DISTINCT rc.id) > 0
+    	""")
+    	List<Object[]> findReviewsWithLikesOrComments();
+
 
 }
