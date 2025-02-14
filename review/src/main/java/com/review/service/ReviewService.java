@@ -3,10 +3,9 @@ package com.review.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +18,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
-import com.review.Constants;
+import com.review.constant.Constants;
+import com.review.dto.FollowedReviewsRequestDTO;
 import com.review.dto.ReviewUpdateDTO;
 import com.review.entity.Review;
-import com.review.entity.repository.ReviewCommentRepository;
-import com.review.entity.repository.ReviewLikeRepository;
 import com.review.entity.repository.ReviewRepository;
+import com.review.proxy.UserFollowProxy;
 
 import jakarta.annotation.PostConstruct;
 
@@ -34,24 +33,42 @@ public class ReviewService {
     @Autowired
     private ReviewRepository reviewRepository;
     
-    @Autowired
-    private ReviewCommentRepository reviewCommentRepository;
-
     
     private static final Logger logger = LoggerFactory.getLogger(ReviewService.class);
 
     @Autowired
     private RedisTemplate<String, Long> redisTemplate;
     
-    private static final String REDIS_TOP_REVIEWS_PREFIX = "popular_reviews:";
     @Autowired
-    private ReviewLikeRepository reviewLikeRepository;
+    private UserFollowProxy userFollowProxy;
+
+    
+    private static final String REDIS_TOP_REVIEWS_PREFIX = "popular_reviews:";
+    
     
     private ZSetOperations<String, Long> getZSetOperations() {
         return redisTemplate.opsForZSet();
     }
 
-    
+    public List<Review> getFollowedUserReviews(FollowedReviewsRequestDTO request) {
+        // 1. Fetch followed user IDs from UserFollowProxy
+        Set<Long> followedUserIds = userFollowProxy.getFollowedUsers(request.getUserId());
+
+        // 2. If user follows no one, return an empty list
+        if (followedUserIds == null || followedUserIds.isEmpty()) {
+            return List.of();
+        }
+
+        // 3. If cursor is null, use current time (first request)
+        if (request.getCursor() == null) {
+        	request.setCursor(LocalDateTime.now());
+        }
+        int page = request.getPage(); // Get page from DTO
+
+        PageRequest pageable = PageRequest.of(page, Constants.PAGE_SIZE);
+        // 4. Fetch paginated reviews using cursor
+        return reviewRepository.findReviewsBySpotifyIdAndUserIdsWithCursor(request.getSpotifyId(), followedUserIds.stream().toList(), request.getCursor(), pageable);
+    }
     
     /*@PostConstruct
     public void initializePopularLikesCache() {

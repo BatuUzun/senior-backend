@@ -1,6 +1,7 @@
 package com.review.controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.review.dto.FollowedReviewsRequestDTO;
 import com.review.dto.ReviewUpdateDTO;
 import com.review.dto.UserReviewCountDTO;
 import com.review.entity.Review;
@@ -32,13 +34,14 @@ public class ReviewController {
 
 	@PostMapping("/add-review")
 	public ResponseEntity<?> addReview(@RequestBody Review review) {
-        try {
-            Review savedReview = reviewService.addReview(review);
-            return ResponseEntity.ok(savedReview);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("{\"error\": \"User has already reviewed this Spotify ID\"}");
-        }
-    }
+		try {
+			Review savedReview = reviewService.addReview(review);
+			return ResponseEntity.ok(savedReview);
+		} catch (IllegalStateException e) {
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+					.body("{\"error\": \"User has already reviewed this Spotify ID\"}");
+		}
+	}
 
 	@DeleteMapping("/delete/{id}")
 	public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
@@ -59,48 +62,50 @@ public class ReviewController {
 	}
 
 	@GetMapping("/get-reviews/spotify/{spotifyId}")
-	public ResponseEntity<Page<Review>> getReviewsBySpotifyId(
-	        @PathVariable String spotifyId,
-	        @RequestParam(defaultValue = "0") int page,
-	        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime referenceTime) {
-	    if (referenceTime == null) {
-	        referenceTime = LocalDateTime.now(); // Use the current time for the first request
-	    }
-	    return ResponseEntity.ok(reviewService.getReviewsBySpotifyId(spotifyId, referenceTime, page));
+	public ResponseEntity<Page<Review>> getReviewsBySpotifyId(@PathVariable String spotifyId,
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime referenceTime) {
+		if (referenceTime == null) {
+			referenceTime = LocalDateTime.now(); // Use the current time for the first request
+		}
+		return ResponseEntity.ok(reviewService.getReviewsBySpotifyId(spotifyId, referenceTime, page));
 	}
 
 	@GetMapping("/calculate/spotify/{spotifyId}/average-rating")
 	public ResponseEntity<Double> calculateAverageRating(@PathVariable String spotifyId) {
 		return ResponseEntity.ok(reviewService.calculateAverageRating(spotifyId));
 	}
-	
+
 	@GetMapping("/get-review/{id}")
-    public ResponseEntity<?> getReviewById(@PathVariable Long id) {
-        try {
-            Review review = reviewService.getReviewById(id);
-            return ResponseEntity.ok(review);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body(e.getMessage());
-        }
-    }
-	
+	public ResponseEntity<?> getReviewById(@PathVariable Long id) {
+		try {
+			Review review = reviewService.getReviewById(id);
+			return ResponseEntity.ok(review);
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.status(404).body(e.getMessage());
+		}
+	}
+
 	@GetMapping("/user-review")
-    public ResponseEntity<?> getUserReview(
-            @RequestParam Long userId,
-            @RequestParam String spotifyId) {
+	public ResponseEntity<?> getUserReview(@RequestParam Long userId, @RequestParam String spotifyId) {
 
-        Optional<Review> reviewOptional = reviewService.getUserReview(userId, spotifyId);
+		Optional<Review> reviewOptional = reviewService.getUserReview(userId, spotifyId);
 
-        if (reviewOptional.isPresent()) {
-            return ResponseEntity.ok(reviewOptional.get());
-        } else {
-            return ResponseEntity.status(404).body("{\"error\": \"Review not found\"}");
-        }
-    }
-	
+		if (reviewOptional.isPresent()) {
+			return ResponseEntity.ok(reviewOptional.get());
+		} else {
+			return ResponseEntity.status(404).body("{\"error\": \"Review not found\"}");
+		}
+	}
+
 	@GetMapping("/user-review-count")
-    public ResponseEntity<UserReviewCountDTO> getUserReviewCount(@RequestParam Long userId) {
-        long reviewCount = reviewService.getUserReviewCount(userId);
-        return ResponseEntity.ok(new UserReviewCountDTO(userId, reviewCount));
+	public ResponseEntity<UserReviewCountDTO> getUserReviewCount(@RequestParam Long userId) {
+		long reviewCount = reviewService.getUserReviewCount(userId);
+		return ResponseEntity.ok(new UserReviewCountDTO(userId, reviewCount));
+	}
+
+	@PostMapping("/followed")
+    public List<Review> getFollowedUserReviews(@RequestBody FollowedReviewsRequestDTO request) {
+        return reviewService.getFollowedUserReviews(request);
     }
 }

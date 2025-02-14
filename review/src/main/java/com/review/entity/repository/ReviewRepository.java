@@ -47,6 +47,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     	    HAVING COUNT(DISTINCT rl.id) > 0 OR COUNT(DISTINCT rc.id) > 0
     	""")
     	List<Object[]> findReviewsWithLikesOrComments();
+    	
+        @Query("SELECT r FROM Review r WHERE r.spotifyId = :spotifyId AND r.userId IN :userIds AND r.createdAt < :cursor ORDER BY r.createdAt DESC")
+        List<Review> findReviewsBySpotifyIdAndUserIdsWithCursor(String spotifyId, List<Long> userIds, LocalDateTime cursor, Pageable pageable);
 
 
 }
