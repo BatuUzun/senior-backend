@@ -2,12 +2,9 @@ package com.comment.entity;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "review_comments")
@@ -17,8 +14,10 @@ public class ReviewComment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "review_id", nullable = false)
-    private Long reviewId;
+    @JoinColumn(name = "review_id", nullable = false, foreignKey = @ForeignKey(name = "fk_review"))
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Review review;
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -29,59 +28,30 @@ public class ReviewComment {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    // Constructors
+    public ReviewComment() {}
 
-    public void setId(Long id) {
+    public ReviewComment(Long id, Review review, Long userId, String comment, LocalDateTime createdAt) {
         this.id = id;
-    }
-
-    public Long getReviewId() {
-        return reviewId;
-    }
-
-    public void setReviewId(Long reviewId) {
-        this.reviewId = reviewId;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
+        this.review = review;
         this.userId = userId;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
         this.comment = comment;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-	public ReviewComment(Long id, Long reviewId, Long userId, String comment, LocalDateTime createdAt) {
-		super();
-		this.id = id;
-		this.reviewId = reviewId;
-		this.userId = userId;
-		this.comment = comment;
-		this.createdAt = createdAt;
-	}
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-	public ReviewComment() {
-		super();
-	}
-    
-    
+    public Review getReview() { return review; }
+    public void setReview(Review review) { this.review = review; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    public String getComment() { return comment; }
+    public void setComment(String comment) { this.comment = comment; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

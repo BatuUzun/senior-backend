@@ -10,20 +10,16 @@ import org.springframework.data.repository.query.Param;
 
 import com.comment.entity.ReviewComment;
 
-public interface ReviewCommentRepository extends JpaRepository<ReviewComment, Long> {
-
-    // Fetch comments by review ID with pagination
-    
-    
-    
+public interface ReviewCommentRepository extends JpaRepository<ReviewComment, Long> {    
 	@Query("""
-	        SELECT rc FROM ReviewComment rc
-	        WHERE rc.reviewId = :reviewId
-	        AND rc.createdAt <= :referenceTime
-	        ORDER BY rc.createdAt ASC, rc.id ASC
-	    """)
-	Page<ReviewComment> findByReviewIdWithReference(
-	        @Param("reviewId") Long reviewId,
-	        @Param("referenceTime") LocalDateTime referenceTime,
-	        Pageable pageable);
+		    SELECT rc FROM ReviewComment rc
+		    WHERE rc.review.id = :reviewId
+		    AND rc.createdAt <= :referenceTime
+		    ORDER BY rc.createdAt ASC, rc.id ASC
+		""")
+		Page<ReviewComment> findByReviewIdWithReference(
+		        @Param("reviewId") Long reviewId,
+		        @Param("referenceTime") LocalDateTime referenceTime,
+		        Pageable pageable);
+
 }
