@@ -1,5 +1,7 @@
 package com.review_like.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,4 +46,11 @@ public class ReviewLikeController {
         ReviewLikeResponseDTO response = reviewLikeService.getReviewsLikeCount(reviewId);
         return new ResponseEntity<>(response, response.getStatus());
     }
+    
+    @GetMapping("/top/{spotifyId}")
+    public ResponseEntity<List<Long>> getTopReviews(@PathVariable String spotifyId) {
+        List<Long> topReviews = reviewLikeService.getTop100PopularReviewsBySpotifyId(spotifyId);
+        return ResponseEntity.ok(topReviews);
+    }
+
 }
