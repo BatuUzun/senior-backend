@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import com.review.constant.Constants;
 import com.review.dto.FollowedReviewsRequestDTO;
+import com.review.dto.FollowedUsersReviewsWithoutSpotifyId;
 import com.review.dto.ReviewUpdateDTO;
 import com.review.entity.Review;
 import com.review.entity.repository.ReviewRepository;
@@ -126,6 +127,29 @@ public class ReviewService {
 		return reviewRepository.findReviewsBySpotifyIdAndUserIdsWithCursor(request.getSpotifyId(),
 				followedUserIds.stream().toList(), request.getCursor(), pageable);
 	}
+	
+	public List<Review> getFollowedUserReviewsWithoutSpotifyId(FollowedUsersReviewsWithoutSpotifyId request) {
+	    // 1. Fetch followed user IDs from UserFollowProxy
+	    Set<Long> followedUserIds = userFollowProxy.getFollowedUsers(request.getUserId());
+
+	    // 2. If user follows no one, return an empty list
+	    if (followedUserIds == null || followedUserIds.isEmpty()) {
+	        return List.of();
+	    }
+
+	    // 3. If cursor is null, use current time (first request)
+	    if (request.getCursor() == null) {
+	        request.setCursor(LocalDateTime.now());
+	    }
+
+	    int page = request.getPage(); // Get page from DTO
+	    PageRequest pageable = PageRequest.of(page, Constants.PAGE_SIZE);
+
+	    // 4. Fetch paginated reviews of followed users (WITHOUT filtering by Spotify ID)
+	    return reviewRepository.findReviewsByFollowedUsersWithCursor(
+	            followedUserIds.stream().toList(), request.getCursor(), pageable);
+	}
+
 
 	/*
 	 * @PostConstruct public void initializePopularLikesCache() { List<Object[]>

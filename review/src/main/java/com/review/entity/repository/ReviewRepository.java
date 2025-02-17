@@ -61,5 +61,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 			    LIMIT
 			""" + Constants.PAGE_SIZE_POPULAR_GLOBAL)
 	List<Object[]> findTopPopularReviews();
+	
+	@Query("SELECT r FROM Review r WHERE r.userId IN :userIds AND r.createdAt < :cursor ORDER BY r.createdAt DESC")
+	List<Review> findReviewsByFollowedUsersWithCursor(List<Long> userIds, LocalDateTime cursor, Pageable pageable);
+
 
 }

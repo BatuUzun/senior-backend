@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.review.dto.FollowedReviewsRequestDTO;
+import com.review.dto.FollowedUsersReviewsWithoutSpotifyId;
 import com.review.dto.ReviewUpdateDTO;
 import com.review.dto.UserReviewCountDTO;
 import com.review.entity.Review;
@@ -104,7 +105,7 @@ public class ReviewController {
 		return ResponseEntity.ok(new UserReviewCountDTO(userId, reviewCount));
 	}
 
-	@PostMapping("/followed")
+	@PostMapping("/followed-by-spotify-id")
     public List<Review> getFollowedUserReviews(@RequestBody FollowedReviewsRequestDTO request) {
         return reviewService.getFollowedUserReviews(request);
     }
@@ -113,4 +114,10 @@ public class ReviewController {
     public List<Long> getPopularReviewIds() {
         return reviewService.getTopReviews();
     }
+	
+	@PostMapping("/followed-reviews")
+	public List<Review> getFollowedUsersLatestReviews(@RequestBody FollowedUsersReviewsWithoutSpotifyId request) {
+	    return reviewService.getFollowedUserReviewsWithoutSpotifyId(request);
+	}
+
 }
