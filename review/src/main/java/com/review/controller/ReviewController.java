@@ -108,4 +108,9 @@ public class ReviewController {
     public List<Review> getFollowedUserReviews(@RequestBody FollowedReviewsRequestDTO request) {
         return reviewService.getFollowedUserReviews(request);
     }
+	
+	@GetMapping("/popular")
+    public List<Long> getPopularReviewIds() {
+        return reviewService.getTopReviews();
+    }
 }
