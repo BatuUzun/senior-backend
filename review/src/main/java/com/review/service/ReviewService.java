@@ -211,8 +211,28 @@ public class ReviewService {
 	}
 
 	public void deleteReview(Long id) {
-		reviewRepository.deleteById(id);
+	    // Retrieve the review to get associated data before deleting
+	    Optional<Review> reviewOptional = reviewRepository.findById(id);
+	    
+	    if (reviewOptional.isPresent()) {
+	        Review review = reviewOptional.get();
+	        
+	        // Remove from global popularity Redis cache
+	        getZSetOperationsPopular().remove(REDIS_TOP_REVIEWS_KEY, id);
+	        
+	        // Remove from Spotify-specific Redis cache
+	        String spotifyKey = REDIS_TOP_REVIEWS_PREFIX + review.getSpotifyId();
+	        getZSetOperations().remove(spotifyKey, id);
+
+	        // Delete from the database
+	        reviewRepository.deleteById(id);
+	        
+	        logger.info("✅ Review {} deleted from database and Redis.", id);
+	    } else {
+	        logger.warn("⚠️ Review with ID {} not found. No action taken.", id);
+	    }
 	}
+
 
 	public Optional<Review> updateReview(ReviewUpdateDTO reviewUpdateDTO) {
 		return reviewRepository.findById(reviewUpdateDTO.getId()).map(existingReview -> {
