@@ -18,36 +18,73 @@ import com.chat_search.service.ChatSearchService;
 
 import jakarta.validation.Valid;
 
+/**
+ * Controller for handling chat search-related functionalities.
+ * Provides APIs for searching messages, fetching user conversations,
+ * and retrieving messages using cursor-based pagination.
+ */
 @RestController
 @RequestMapping("/chat-search")
 public class ChatSearchController {
 
-	@Autowired
+    @Autowired
     private ChatSearchService chatSearchService;
 
-	// Fetch messages using cursor-based pagination
-	@PostMapping("/user/conversations")
-	public List<ChatUserConversationDTO> getUserConversations(@RequestParam Long userId) {
-	    return chatSearchService.fetchUserConversations(userId);
-	}
+    /**
+     * Fetches a list of user conversations.
+     * 
+     * @param userId The ID of the user whose conversations are to be retrieved.
+     * @return A list of ChatUserConversationDTO containing conversation details.
+     */
+    @PostMapping("/user/conversations")
+    public List<ChatUserConversationDTO> getUserConversations(@RequestParam Long userId) {
+        return chatSearchService.fetchUserConversations(userId);
+    }
 
-
-    // Search messages globally (cursor-based)
+    /**
+     * Searches messages globally based on a keyword.
+     * Uses cursor-based pagination by providing the timestamp of the last retrieved message.
+     * 
+     * @param requestDTO DTO containing userId, keyword to search for, and lastSentAt timestamp for pagination.
+     * @return A list of ChatMessageIndex objects containing matched messages.
+     */
     @PostMapping("/search")
     public List<ChatMessageIndex> searchMessages(@Valid @RequestBody ChatSearchByKeywordRequestDTO requestDTO) {
-        return chatSearchService.searchMessagesByKeyword(requestDTO.getUserId(), requestDTO.getKeyword(), requestDTO.getLastSentAt());
+        return chatSearchService.searchMessagesByKeyword(
+            requestDTO.getUserId(),
+            requestDTO.getKeyword(),
+            requestDTO.getLastSentAt()
+        );
     }
 
-    // Search messages inside a conversation (cursor-based)
+    /**
+     * Searches messages inside a specific conversation.
+     * Uses cursor-based pagination by providing the timestamp of the last retrieved message.
+     * 
+     * @param requestDTO DTO containing conversationId, keyword to search for, and lastSentAt timestamp for pagination.
+     * @return A list of ChatMessageIndex objects containing matched messages in the conversation.
+     */
     @PostMapping("/conversation/search")
     public List<ChatMessageIndex> searchMessagesInConversation(@Valid @RequestBody ChatSearchInConversationRequestDTO requestDTO) {
-        return chatSearchService.searchMessagesInConversation(requestDTO.getConversationId(), requestDTO.getKeyword(), requestDTO.getLastSentAt());
+        return chatSearchService.searchMessagesInConversation(
+            requestDTO.getConversationId(),
+            requestDTO.getKeyword(),
+            requestDTO.getLastSentAt()
+        );
     }
 
-    // Fetch latest 20 messages in a conversation (cursor-based pagination)
+    /**
+     * Retrieves the latest 20 messages in a given conversation.
+     * Uses cursor-based pagination by providing the timestamp of the last retrieved message.
+     * 
+     * @param requestDTO DTO containing conversationId and lastSentAt timestamp for pagination.
+     * @return A list of ChatMessageIndex objects containing the latest messages in the conversation.
+     */
     @PostMapping("/conversation/latest")
     public List<ChatMessageIndex> getLatestMessagesByConversationId(@Valid @RequestBody ChatLatestMessagesRequestDTO requestDTO) {
-        return chatSearchService.fetchLatestMessagesByConversationId(requestDTO.getConversationId(), requestDTO.getLastSentAt());
+        return chatSearchService.fetchLatestMessagesByConversationId(
+            requestDTO.getConversationId(),
+            requestDTO.getLastSentAt()
+        );
     }
-
 }
