@@ -46,6 +46,8 @@ public class ApiGatewayConfiguration {
                         .uri("lb://chat-search"))
                 .route("profile-getter", r -> r.path("/profile-getter/**")
                         .uri("lb://profile-getter"))
+                .route("notification", r -> r.path("/notification/**")
+                        .uri("lb://notification"))
                 .route(p -> p.path("/chat-send-websocket/**")
                         .filters(gatewayFilterSpec -> gatewayFilterSpec
                                 .rewritePath("/chat-send-websocket/(?<remaining>.*)", "/${remaining}")

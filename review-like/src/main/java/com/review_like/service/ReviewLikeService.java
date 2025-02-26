@@ -17,9 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.review_like.constant.Constants;
 import com.review_like.dto.IsLikedResponseDto;
+import com.review_like.dto.NotificationRequest;
 import com.review_like.dto.ReviewLikeResponseDTO;
 import com.review_like.entity.Review;
 import com.review_like.entity.ReviewLike;
+import com.review_like.proxy.NotificationProxy;
 import com.review_like.repository.ReviewLikeRepository;
 import com.review_like.repository.ReviewRepository;
 
@@ -38,6 +40,10 @@ public class ReviewLikeService {
 
     @Autowired
     private RedisTemplate<String, Long> redisTemplate;
+    
+    @Autowired
+    private NotificationProxy notificationProxy;
+
 
     private static final String REDIS_KEY_PREFIX = "review_likes:";
     
@@ -77,6 +83,8 @@ public class ReviewLikeService {
             ReviewLike l = reviewLikeRepository.save(new ReviewLike(userId, review));
             incrementReviewsLikesCount(review.getId());
             updateTopReviewsInRedis(review.getSpotifyId(), review.getId(), 1); // Update Redis ZSET
+            NotificationRequest request = new NotificationRequest(review.getUserId(), "New Like!", "Someone liked your post!");
+            notificationProxy.sendNotification(request);
 
             return new ReviewLikeResponseDTO(true, "Like added successfully.", l.getId(), HttpStatus.OK);
         } catch (Exception e) {
