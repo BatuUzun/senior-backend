@@ -123,6 +123,14 @@ BEFORE INSERT ON conversations
 FOR EACH ROW
 EXECUTE FUNCTION enforce_user_order();
 
+CREATE TABLE user_device_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    device_token VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
 # Cassandra
 
 CREATE KEYSPACE IF NOT EXISTS chat_system WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'};
