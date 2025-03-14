@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.favorite.dto.FavoriteDTO;
+import com.favorite.dto.FavoritePaginatedResponseDTO;
 import com.favorite.dto.FavoriteProfileResponseDTO;
 import com.favorite.dto.FavoriteResponseDTO;
 import com.favorite.service.FavoriteService;
@@ -38,6 +39,18 @@ public class FavoriteController {
             return ResponseEntity.status(HttpStatus.CREATED).body(favorite);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+    }
+    
+    @PutMapping("/replace-favorite/{spotifyId}")
+    public ResponseEntity<?> replaceFavorite(
+        @PathVariable String spotifyId, // Accept Spotify ID as a String
+        @RequestBody FavoriteDTO favoriteDTO) {
+        try {
+            FavoriteResponseDTO favorite = favoriteService.replaceFavorite(spotifyId, favoriteDTO);
+            return ResponseEntity.ok(favorite);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
@@ -74,7 +87,7 @@ public class FavoriteController {
         if (favorites.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No favorites found for user ID " + userId);
         }
-        return ResponseEntity.ok(favorites);
+        return ResponseEntity.ok(new FavoritePaginatedResponseDTO<>(favorites));
     }
 
     /**
@@ -106,7 +119,13 @@ public class FavoriteController {
     public ResponseEntity<List<FavoriteProfileResponseDTO>> getLatestFavorites(
             @RequestParam Long userId,
             @RequestParam String type) {
+        
+        System.out.println("🔍 API çağrısı yapıldı: /latest-profile userId=" + userId + " type=" + type);
+        
         List<FavoriteProfileResponseDTO> favorites = favoriteService.getLatestFavorites(userId, type);
+
+        System.out.println("✅ API verisi döndü: " + favorites.size() + " favori bulundu.");
+        
         return ResponseEntity.ok(favorites);
     }
 }

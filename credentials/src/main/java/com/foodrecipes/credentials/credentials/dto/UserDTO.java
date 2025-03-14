@@ -14,6 +14,10 @@ public class UserDTO {
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
+    @NotBlank(message = "Username is required")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    private String username; // Add username field
+
     // Getters and Setters
     public String getEmail() {
         return email;
@@ -29,5 +33,13 @@ public class UserDTO {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getUsername() { // Add getter for username
+        return username;
+    }
+
+    public void setUsername(String username) { // Add setter for username
+        this.username = username;
     }
 }

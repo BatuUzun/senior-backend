@@ -2,6 +2,7 @@ package com.userfollow.userfollow.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -32,4 +33,7 @@ public interface UserFollowsRepository extends JpaRepository<UserFollow, Long> {
     @Query("SELECT u.followerId FROM UserFollow u WHERE u.followedId = :userId AND u.dateFollowed > :cursor ORDER BY u.dateFollowed ASC LIMIT "+Constants.PAGE_SIZE)
     List<Long> findFollowersByUserId(@Param("userId") Long userId, @Param("cursor") LocalDateTime cursor);
 
+
+    @Query("SELECT uf.followedId FROM UserFollow uf WHERE uf.followerId = :userId")
+    Set<Long> findFollowedUsersByUserId(@Param("userId") Long userId);
 }

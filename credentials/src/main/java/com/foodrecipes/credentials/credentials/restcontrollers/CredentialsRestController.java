@@ -57,31 +57,51 @@ public class CredentialsRestController {
      * @return ResponseEntity containing a success message and user ID if the user is created,
      *         or a CONFLICT response if a user with the given email already exists.
      */
-    @PostMapping("/create-user")
-    public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO userDTO) {
-        // Check if a user with the given email already exists
-        if (userService.isUserExist(userDTO.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("error", "User with this email already exists"));
-        }
+	@PostMapping("/create-user")
+	public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO userDTO) {
+	    // Check if a user with the given email already exists
+	    if (userService.isUserExist(userDTO.getEmail())) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT)
+	                .body(Map.of("error", "User with this email already exists"));
+	    }
 
-        // Hash the password before storing for security reasons
-        String hashedPassword = userService.hashPassword(userDTO.getPassword());
+	    // Check if the username is already taken
+	    if (userProfileService.isUserProfileExist(userDTO.getUsername())) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT)
+	                .body(Map.of("error", "Username already taken"));
+	    }
 
-        // Create a new User entity and populate its fields
-        User user = new User();
-        user.setEmail(userDTO.getEmail());
-        user.setPassword(hashedPassword);
+	    // Hash the password before storing for security reasons
+	    String hashedPassword = userService.hashPassword(userDTO.getPassword());
 
-        // Save the user in the database
-        user = userService.createUser(user);
+	    // Create a new User entity and populate its fields
+	    User user = new User();
+	    user.setEmail(userDTO.getEmail());
+	    user.setPassword(hashedPassword);
 
-        // Return a response with the created user's ID
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-            "message", "User successfully created",
-            "userId", user.getId()
-        ));
-    }
+	    // Save the user in the database
+	    user = userService.createUser(user);
+
+	    // Create a new UserProfile entity and populate its fields
+	    UserProfile userProfile = new UserProfile();
+	    userProfile.setUser(user);
+	    userProfile.setUsername(userDTO.getUsername()); // Set the username
+	    userProfile.setDescription(""); // Empty description
+	    userProfile.setBio(""); // Empty bio
+	    userProfile.setLink(""); // Empty link
+	    userProfile.setLocation(""); // Empty location
+	    userProfile.setProfileImage(Constants.DEFAULT_PROFILE_IMAGE); // Assign a default profile image
+
+	    // Save the user profile in the database
+	    userProfileService.createUserProfile(userProfile);
+
+	    // Return a response with the created user's ID and profile ID
+	    return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+	        "message", "User and user profile successfully created",
+	        "userId", user.getId(),
+	        "userProfileId", userProfile.getId()
+	    ));
+	}
 
     /**
      * Creates a user profile.
@@ -396,9 +416,4 @@ public class CredentialsRestController {
         // Return success response
         return ResponseEntity.ok(Map.of("message", "Password successfully changed"));
     }
-
-
-
-
-    
 }

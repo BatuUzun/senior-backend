@@ -1,6 +1,7 @@
 package com.favorite.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +26,31 @@ public class FavoriteService {
     private FavoriteRepository favoriteRepository;
 
     public FavoriteResponseDTO addFavorite(FavoriteDTO favoriteDTO) {
-        if (favoriteRepository.existsByUserIdAndSpotifyId(favoriteDTO.getUserId(), favoriteDTO.getSpotifyId())) {
+        // Check if the user already has 4 favorites of the same type
+        List<Favorite> existingFavorites = favoriteRepository.findByUserIdAndType(
+            favoriteDTO.getUserId(), 
+            favoriteDTO.getType()
+        );
+
+        if (existingFavorites.size() >= 4) {
+            throw new IllegalArgumentException("User already has 4 favorites of type: " + favoriteDTO.getType());
+        }
+
+        // Check if the favorite already exists
+        Optional<Favorite> existingFavorite = favoriteRepository.findByUserIdAndSpotifyId(
+            favoriteDTO.getUserId(), 
+            favoriteDTO.getSpotifyId()
+        );
+
+        if (existingFavorite.isPresent()) {
             throw new IllegalArgumentException("User already favorited Spotify ID: " + favoriteDTO.getSpotifyId());
         }
 
+        // Create and save the new favorite
         Favorite favorite = new Favorite();
         favorite.setUserId(favoriteDTO.getUserId());
         favorite.setSpotifyId(favoriteDTO.getSpotifyId());
-        favorite.setType(favoriteDTO.getType()); // Set new field
+        favorite.setType(favoriteDTO.getType());
         Favorite savedFavorite = favoriteRepository.save(favorite);
 
         return mapToResponseDTO(savedFavorite);
@@ -44,6 +62,20 @@ public class FavoriteService {
             throw new IllegalArgumentException("Favorite with ID " + id + " does not exist.");
         }
         favoriteRepository.deleteById(id);
+    }
+    
+    public FavoriteResponseDTO replaceFavorite(String spotifyId, FavoriteDTO favoriteDTO) {
+        // Find the existing favorite by spotifyId and userId
+        Favorite existingFavorite = favoriteRepository.findByUserIdAndSpotifyId(
+            favoriteDTO.getUserId(), spotifyId)
+            .orElseThrow(() -> new IllegalArgumentException("Favorite not found"));
+
+        // Update the existing favorite with new data
+        existingFavorite.setSpotifyId(favoriteDTO.getSpotifyId());
+        existingFavorite.setType(favoriteDTO.getType());
+        Favorite updatedFavorite = favoriteRepository.save(existingFavorite);
+
+        return mapToResponseDTO(updatedFavorite);
     }
 
     public Page<FavoriteResponseDTO> getFavoritesByUserId(Long userId, int page) {
@@ -73,8 +105,13 @@ public class FavoriteService {
     }
     
     public List<FavoriteProfileResponseDTO> getLatestFavorites(Long userId, String type) {
-        return favoriteRepository.findTop4ByUserIdAndType(userId, type)
-                .stream()
+        System.out.println("Fetching latest favorites for user: " + userId + " and type: " + type);
+        
+        List<Favorite> favorites = favoriteRepository.findTop4ByUserIdAndType(userId, type, PageRequest.of(0, Constants.PAGE_SIZE_PROFILE));
+        
+        System.out.println("Fetched favorites count: " + favorites.size());
+
+        return favorites.stream()
                 .map(favorite -> new FavoriteProfileResponseDTO(
                         favorite.getId(),
                         favorite.getSpotifyId(),
@@ -82,4 +119,5 @@ public class FavoriteService {
                         favorite.getCreatedAt()))
                 .collect(Collectors.toList());
     }
+
 }
