@@ -80,19 +80,19 @@ public class EmailSenderService {
 	}
 	
 	private void prepareEmailContent(MimeMessageHelper mimeMessageHelper, MimeMessage mimeMessage, String email, 
-			String VERIFY_EMAIL_TEXT, String VERIFY_EMAIL_SUBJECT) {
-		
-		try {
-			mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
-			mimeMessageHelper.setFrom(SEND_EMAIL_FROM);
-			mimeMessageHelper.setTo(email);
-			mimeMessageHelper.setText(VERIFY_EMAIL_TEXT);
-			mimeMessageHelper.setSubject(VERIFY_EMAIL_SUBJECT);
-		} catch (MessagingException e) {
-			e.printStackTrace();
-		}
-		
+	        String VERIFY_EMAIL_TEXT, String VERIFY_EMAIL_SUBJECT) {
+
+	    try {
+	        mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // UTF-8 Encoding ekledim.
+	        mimeMessageHelper.setFrom(SEND_EMAIL_FROM);
+	        mimeMessageHelper.setTo(email);
+	        mimeMessageHelper.setSubject(VERIFY_EMAIL_SUBJECT);
+	        mimeMessageHelper.setText(VERIFY_EMAIL_TEXT, false); // İkinci parametreyi `false` olarak bırak.
+	    } catch (MessagingException e) {
+	        e.printStackTrace();
+	    }
 	}
+
 	
 	
 }

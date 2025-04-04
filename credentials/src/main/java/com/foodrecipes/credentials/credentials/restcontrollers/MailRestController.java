@@ -27,8 +27,11 @@ public class MailRestController {
      */
     @GetMapping("/send-verification-code/")
     private int generateVerificationCode(@RequestParam String email) {
-        return emailService.generateVerificationCode(email);
+        int code = emailService.generateVerificationCode(email);
+        emailService.verificationCodeEmailSender(email, code); // Email gönderimini tetikle.
+        return code;
     }
+
 
     /**
      * Generates and sends a password reset verification code to the user's email.
