@@ -7,7 +7,11 @@ import jakarta.persistence.*;
 @Table(name = "user_profiles")
 public class UserProfile {
 
-    @Id
+    public void setId(Long id) {
+		this.id = id;
+	}
+
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
