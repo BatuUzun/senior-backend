@@ -3,15 +3,18 @@ package com.foodrecipes.credentials.credentials.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.foodrecipes.credentials.credentials.constants.Constants;
+import com.foodrecipes.credentials.credentials.dto.PagedResponse;
+import com.foodrecipes.credentials.credentials.dto.UserFollowProjection;
 import com.foodrecipes.credentials.credentials.dto.UserProfileResponseProfileGetterDTO;
 import com.foodrecipes.credentials.credentials.entity.UserFollow;
 import com.foodrecipes.credentials.credentials.repository.UserFollowsRepository;
-import com.foodrecipes.credentials.credentials.constants.Constants;
 
 @Service
 public class UserFollowsService {
@@ -77,27 +80,39 @@ public class UserFollowsService {
     private UserProfileService userProfileService;
 
 
-	public List<UserProfileResponseProfileGetterDTO> getFollowings(Long userId, LocalDateTime cursor) {
-		if (cursor == null) {
-			cursor = LocalDateTime.of(2000, 1, 1, 0, 0); // Default cursor (fetch from start)
-		}
+    public PagedResponse<UserProfileResponseProfileGetterDTO> getFollowings(Long userId, LocalDateTime cursor) {
+        if (cursor == null) {
+            cursor = LocalDateTime.of(2000, 1, 1, 0, 0);
+        }
 
-		List<Long> followedIds = userFollowsRepository.findFollowingsByUserId(userId, cursor);
-		
-			List<UserProfileResponseProfileGetterDTO> profiles = userProfileService.getUserProfilesByIds(followedIds);
-			return profiles;
-		
+        List<UserFollowProjection> projections = userFollowsRepository.findFollowingsWithCursor(userId, cursor);
+        List<Long> userIds = projections.stream().map(UserFollowProjection::getUserId).collect(Collectors.toList());
+        List<UserProfileResponseProfileGetterDTO> profiles = userProfileService.getUserProfilesByIds(userIds);
+
+        LocalDateTime nextCursor = projections.size() == Constants.PAGE_SIZE
+            ? projections.get(projections.size() - 1).getDateFollowed()
+            : null;
+
+        return new PagedResponse<>(profiles, nextCursor);
+    }
+
+
+	public PagedResponse<UserProfileResponseProfileGetterDTO> getFollowers(Long userId, LocalDateTime cursor) {
+	    if (cursor == null) {
+	        cursor = LocalDateTime.of(2000, 1, 1, 0, 0);
+	    }
+
+	    List<UserFollowProjection> projections = userFollowsRepository.findFollowersWithCursor(userId, cursor, Constants.PAGE_SIZE);
+	    List<Long> userIds = projections.stream().map(UserFollowProjection::getUserId).collect(Collectors.toList());
+	    List<UserProfileResponseProfileGetterDTO> profiles = userProfileService.getUserProfilesByIds(userIds);
+
+	    LocalDateTime nextCursor = projections.size() == Constants.PAGE_SIZE
+	        ? projections.get(projections.size() - 1).getDateFollowed()
+	        : null;
+
+	    return new PagedResponse<>(profiles, nextCursor);
 	}
 
-	public List<UserProfileResponseProfileGetterDTO> getFollowers(Long userId, LocalDateTime cursor) {
-		if (cursor == null) {
-			cursor = LocalDateTime.of(2000, 1, 1, 0, 0);
-		}
-
-		List<Long> followerIds = userFollowsRepository.findFollowersByUserIdNative(userId, cursor, Constants.PAGE_SIZE);
-		List<UserProfileResponseProfileGetterDTO> profiles = userProfileService.getUserProfilesByIds(followerIds);
-		return profiles;
-	}
 
 	public Set<Long> getFollowedUsers(Long userId) {
 	    return userFollowsRepository.findFollowedUsersByUserId(userId);
