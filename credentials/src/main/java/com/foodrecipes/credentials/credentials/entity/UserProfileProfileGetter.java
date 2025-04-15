@@ -100,5 +100,10 @@ public class UserProfileProfileGetter {
     // Getters and setters
     // Constructors, if needed
     
-    
+	public UserProfileProfileGetter(Long id, String username, String profileImage) {
+	    this.id = id;
+	    this.username = username;
+	    this.profileImage = profileImage;
+	}
+
 }

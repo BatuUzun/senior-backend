@@ -27,7 +27,10 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
     
     boolean existsByUserId(Long userId);
     
-	List<UserProfileProfileGetter> findByIdIn(List<Long> userIds);
+	//List<UserProfileProfileGetter> findByIdIn(List<Long> userIds);
+
+    @Query("SELECT new com.foodrecipes.credentials.credentials.entity.UserProfileProfileGetter(u.id, u.username, u.profileImage) FROM UserProfile u WHERE u.id IN :ids")
+    List<UserProfileProfileGetter> findByIdIn(@Param("ids") List<Long> ids);
 
 
 }

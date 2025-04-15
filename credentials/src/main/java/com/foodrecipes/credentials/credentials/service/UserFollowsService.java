@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.foodrecipes.credentials.credentials.dto.UserProfileResponseProfileGetterDTO;
 import com.foodrecipes.credentials.credentials.entity.UserFollow;
 import com.foodrecipes.credentials.credentials.repository.UserFollowsRepository;
+import com.foodrecipes.credentials.credentials.constants.Constants;
 
 @Service
 public class UserFollowsService {
@@ -93,7 +94,7 @@ public class UserFollowsService {
 			cursor = LocalDateTime.of(2000, 1, 1, 0, 0);
 		}
 
-		List<Long> followerIds = userFollowsRepository.findFollowersByUserId(userId, cursor);
+		List<Long> followerIds = userFollowsRepository.findFollowersByUserIdNative(userId, cursor, Constants.PAGE_SIZE);
 		List<UserProfileResponseProfileGetterDTO> profiles = userProfileService.getUserProfilesByIds(followerIds);
 		return profiles;
 	}
