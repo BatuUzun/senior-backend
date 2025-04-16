@@ -16,7 +16,7 @@ public class Review {
     @Column(nullable = false)
     private int rating;
 
-    @Column
+    @Column(length = 1000)
     private String comment;
 
     @Column(name = "spotify_id", nullable = false)
@@ -91,4 +91,3 @@ public class Review {
     
     
 }
-

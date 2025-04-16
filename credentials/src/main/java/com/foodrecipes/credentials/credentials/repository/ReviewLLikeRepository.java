@@ -25,7 +25,7 @@ public interface ReviewLLikeRepository extends JpaRepository<ReviewLLike, Long> 
     @Query("SELECT rl.review.id, COUNT(rl) FROM ReviewLike rl GROUP BY rl.review.id")
     List<Object[]> countLikesByReviewId();
     
-    @Query("SELECT rl FROM ReviewLike rl WHERE rl.userId = :userId AND rl.review.id = :reviewId")
+    @Query("SELECT rl FROM ReviewLLike rl WHERE rl.userId = :userId AND rl.review.id = :reviewId")
     Optional<ReviewLLike> findByUserIdAndReviewId(@Param("userId") Long userId, @Param("reviewId") Long reviewId);
 
     @Query("""

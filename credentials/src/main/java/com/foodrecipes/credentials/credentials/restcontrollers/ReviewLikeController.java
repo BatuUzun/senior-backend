@@ -87,4 +87,14 @@ public class ReviewLikeController {
         List<Long> topReviews = reviewLikeService.getTop100PopularReviewsBySpotifyId(spotifyId);
         return ResponseEntity.ok(topReviews);
     }
+    
+    
+    
+    @DeleteMapping("/unlike/{userId}/{reviewId}")
+    public ResponseEntity<ReviewLikeResponseDTO> unlikeReviewByUserAndReview(
+        @PathVariable Long userId, 
+        @PathVariable Long reviewId) {
+        ReviewLikeResponseDTO response = reviewLikeService.removeReviewsLikeByUserAndReview(userId, reviewId);
+        return new ResponseEntity<>(response, response.getStatus());
+    }
 }

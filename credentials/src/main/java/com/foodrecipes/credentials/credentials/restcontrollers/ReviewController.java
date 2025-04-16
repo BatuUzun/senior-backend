@@ -73,10 +73,14 @@ public class ReviewController {
      * @return ResponseEntity containing the updated review if successful,
      *         or NOT_FOUND if the review does not exist.
      */
-    @PutMapping("/update")
-    public ResponseEntity<Review> updateReview(@RequestBody ReviewUpdateDTO reviewUpdateDTO) {
-        // Attempt to update the review and return appropriate response
-        return reviewService.updateReview(reviewUpdateDTO).map(ResponseEntity::ok)
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Review> updateReview(@PathVariable Long id, @RequestBody ReviewUpdateDTO reviewUpdateDTO) {
+        if (!id.equals(reviewUpdateDTO.getId())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return reviewService.updateReview(reviewUpdateDTO)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 

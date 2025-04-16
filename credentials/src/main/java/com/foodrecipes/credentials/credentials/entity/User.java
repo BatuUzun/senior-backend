@@ -21,6 +21,17 @@ public class User {
 
     @Column(nullable = false)
     private String password;
+    
+    @Column(nullable = false, unique = true)
+    private String username;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     @Column(name = "is_verified", nullable = false)
     private boolean isVerified = false;

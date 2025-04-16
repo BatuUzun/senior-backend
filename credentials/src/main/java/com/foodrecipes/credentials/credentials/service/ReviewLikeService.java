@@ -118,5 +118,20 @@ public class ReviewLikeService {
 
 
 
-    
+    @Transactional
+    public ReviewLikeResponseDTO removeReviewsLikeByUserAndReview(Long userId, Long reviewId) {
+        Optional<ReviewLLike> optionalReviewLike = reviewLikeRepository.findByUserIdAndReviewId(userId, reviewId);
+        
+        if (optionalReviewLike.isEmpty()) {
+            return new ReviewLikeResponseDTO(false, "Like not found.", null, HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            reviewLikeRepository.delete(optionalReviewLike.get());
+            return new ReviewLikeResponseDTO(true, "Like removed successfully.", null, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("Error while removing like: {}", e.getMessage());
+            return new ReviewLikeResponseDTO(false, "Internal Server Error while removing the like.", null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
