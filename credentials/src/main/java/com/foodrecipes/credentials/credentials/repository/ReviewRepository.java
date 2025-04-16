@@ -62,14 +62,15 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 		    SELECT r.id, 
 		           COUNT(DISTINCT rl.id) AS like_count, 
 		           COUNT(DISTINCT rc.id) AS comment_count
-		    FROM reviews r
-		    LEFT JOIN review_like rl ON r.id = rl.review_id
-		    LEFT JOIN review_comment rc ON r.id = rc.review_id
+		    FROM review r
+		    LEFT JOIN review_likes rl ON r.id = rl.review_id
+		    LEFT JOIN review_comments rc ON r.id = rc.review_id
 		    GROUP BY r.id
 		    ORDER BY (COUNT(DISTINCT rl.id) + COUNT(DISTINCT rc.id)) DESC
 		    LIMIT 100
 		""", nativeQuery = true)
 		List<Object[]> findTopPopularReviews();
+
 
 
 }
