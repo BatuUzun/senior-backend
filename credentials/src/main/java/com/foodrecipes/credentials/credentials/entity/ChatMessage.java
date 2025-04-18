@@ -28,6 +28,17 @@ public class ChatMessage {
 
     private LocalDateTime timestamp = LocalDateTime.now();
 
+    @Column(name = "conversation_id")
+    private Long conversationId;
+
+    public Long getConversationId() {
+        return conversationId;
+    }
+
+    public void setConversationId(Long conversationId) {
+        this.conversationId = conversationId;
+    }
+
 	public Long getId() {
 		return id;
 	}

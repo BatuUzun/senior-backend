@@ -1,13 +1,17 @@
 package com.foodrecipes.credentials.credentials.restcontrollers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import com.foodrecipes.credentials.credentials.dto.ChatConversationDTO;
 import com.foodrecipes.credentials.credentials.dto.ChatMessageDTO;
-import com.foodrecipes.credentials.credentials.entity.ChatMessage;
-import com.foodrecipes.credentials.credentials.repository.ChatMessageRepository;
+import com.foodrecipes.credentials.credentials.service.ChatMessageService;
 
 @Controller
 public class ChatWebSocketController {
@@ -16,16 +20,12 @@ public class ChatWebSocketController {
     private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    private ChatMessageRepository chatMessageRepository;
+    private ChatMessageService chatMessageService;
 
     @MessageMapping("/chat.send")
     public void processMessage(ChatMessageDTO dto) {
         // Save to DB
-        ChatMessage message = new ChatMessage();
-        message.setSenderId(dto.getSenderId());
-        message.setReceiverId(dto.getReceiverId());
-        message.setContent(dto.getContent());
-        chatMessageRepository.save(message);
+        chatMessageService.saveAndSendMessage(dto);
 
         // Send to specific user
         messagingTemplate.convertAndSendToUser(
@@ -34,4 +34,6 @@ public class ChatWebSocketController {
             dto
         );
     }
+    
+    
 }
