@@ -130,6 +130,23 @@ CREATE TABLE user_device_tokens (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS public.chat_messages
+(
+    id bigint NOT NULL DEFAULT nextval('chat_messages_id_seq'::regclass),
+    sender_id bigint NOT NULL,
+    receiver_id bigint NOT NULL,
+    content text COLLATE pg_catalog."default" NOT NULL,
+    "timestamp" timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chat_messages_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_receiver FOREIGN KEY (receiver_id)
+        REFERENCES public.user_profiles (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT fk_sender FOREIGN KEY (sender_id)
+        REFERENCES public.user_profiles (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
 
 # Cassandra
 
