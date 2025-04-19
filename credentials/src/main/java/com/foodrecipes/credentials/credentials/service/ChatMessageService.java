@@ -1,10 +1,15 @@
 package com.foodrecipes.credentials.credentials.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,5 +123,18 @@ public class ChatMessageService {
     public List<Long> getConversationIdsForUser(Long userId) {
         return conversationRepository.findConversationIdsByUserId(userId);
     }
+    
+    
+    
+    public List<ChatMessage> getMessagesWithCursor(Long conversationId, LocalDateTime before) {
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("timestamp").descending());
+
+        if (before == null) {
+            return chatMessageRepository.findMessagesWithoutCursor(conversationId, pageable);
+        } else {
+            return chatMessageRepository.findMessagesBeforeTimestamp(conversationId, before, pageable);
+        }
+    }
+
 
 }
