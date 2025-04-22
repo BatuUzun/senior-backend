@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -45,8 +46,10 @@ public interface UserFollowsRepository extends JpaRepository<UserFollow, Long> {
     	       "ORDER BY u.dateFollowed ASC")
     	List<UserFollowProjection> findFollowingsWithCursor(
     	    @Param("userId") Long userId,
-    	    @Param("cursor") LocalDateTime cursor
+    	    @Param("cursor") LocalDateTime cursor,
+    	    Pageable pageable
     	);
+
 
 
 

@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,7 +86,7 @@ public class UserFollowsService {
             cursor = LocalDateTime.of(2000, 1, 1, 0, 0);
         }
 
-        List<UserFollowProjection> projections = userFollowsRepository.findFollowingsWithCursor(userId, cursor);
+        List<UserFollowProjection> projections = userFollowsRepository.findFollowingsWithCursor(userId, cursor, PageRequest.of(0, Constants.PAGE_SIZE));
         List<Long> userIds = projections.stream().map(UserFollowProjection::getUserId).collect(Collectors.toList());
         List<UserProfileResponseProfileGetterDTO> profiles = userProfileService.getUserProfilesByIds(userIds);
 
