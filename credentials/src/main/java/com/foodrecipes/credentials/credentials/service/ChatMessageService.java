@@ -80,7 +80,7 @@ public class ChatMessageService {
             .distinct()
             .toList();
 
-        List<UserProfileResponseProfileGetterDTO> opponentProfiles = userProfileService.getUserProfilesByIds(opponentIds);
+        List<UserProfileResponseProfileGetterDTO> opponentProfiles = userProfileService.getUserProfilesByIdsNoLimitation(opponentIds);
 
         Map<Long, UserProfileResponseProfileGetterDTO> profileMap = opponentProfiles.stream()
             .collect(Collectors.toMap(UserProfileResponseProfileGetterDTO::getUserId, p -> p));

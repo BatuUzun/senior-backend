@@ -62,5 +62,23 @@ public class UserProfileService {
             .map(profile -> new UserProfileResponseProfileGetterDTO(profile.getId(), profile.getUsername(), profile.getProfileImage()))
             .collect(Collectors.toList());
     }
+    
+    public List<UserProfileResponseProfileGetterDTO> getUserProfilesByIdsNoLimitation(List<Long> userIds) {
+        
+
+        // Fetch profiles from DB (unordered)
+        List<UserProfileProfileGetter> userProfiles = userProfileRepository.findByIdIn(userIds);
+
+        // Convert list to a Map for quick lookup
+        Map<Long, UserProfileProfileGetter> userProfileMap = userProfiles.stream()
+            .collect(Collectors.toMap(UserProfileProfileGetter::getId, profile -> profile));
+
+        // Maintain the original order by mapping userIds to the fetched profiles
+        return userIds.stream()
+            .map(id -> userProfileMap.getOrDefault(id, null)) // Ensure order is preserved
+            .filter(profile -> profile != null) // Remove null values for missing profiles
+            .map(profile -> new UserProfileResponseProfileGetterDTO(profile.getId(), profile.getUsername(), profile.getProfileImage()))
+            .collect(Collectors.toList());
+    }
 
 }
