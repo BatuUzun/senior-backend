@@ -40,16 +40,14 @@ public class ChatMessageService {
     
 
     @Transactional
-    public void saveAndSendMessage(ChatMessageDTO dto) {
+    public ChatMessage saveAndSendMessage(ChatMessageDTO dto) {
         Long conversationId = dto.getConversationId();
 
-        // If conversationId is null, check if it exists or create one
         if (conversationId == null) {
             Conversation conversation = conversationRepository
                 .findByUserPair(dto.getSenderId(), dto.getReceiverId())
                 .orElseGet(() -> {
                     Conversation newConv = new Conversation();
-                    // Always save ordered (lower user ID first) to match unique constraint logic
                     if (dto.getSenderId() < dto.getReceiverId()) {
                         newConv.setUser1(dto.getSenderId());
                         newConv.setUser2(dto.getReceiverId());
@@ -69,8 +67,9 @@ public class ChatMessageService {
         message.setContent(dto.getContent());
         message.setConversationId(conversationId);
 
-        chatMessageRepository.save(message);
+        return chatMessageRepository.save(message); // ✅ return saved message with ID
     }
+
 
 
     public List<ConversationSummaryDTO> getConversationSummaries(Long userId) {
