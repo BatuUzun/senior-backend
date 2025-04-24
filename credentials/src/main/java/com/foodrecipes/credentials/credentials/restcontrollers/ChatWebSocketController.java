@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
 import com.foodrecipes.credentials.credentials.dto.ChatMessageDTO;
+import com.foodrecipes.credentials.credentials.dto.DeletedMessageDTO;
 import com.foodrecipes.credentials.credentials.entity.ChatMessage;
 import com.foodrecipes.credentials.credentials.service.ChatMessageService;
 
@@ -43,4 +44,25 @@ public class ChatWebSocketController {
 
         return savedMessage; // This goes back to sender
     }
+    
+    @MessageMapping("/chat.delete")
+    public void deleteMessage(Long messageId, Principal principal) {
+        // ✅ Mark as deleted or remove from DB
+        ChatMessage deleted = chatMessageService.deleteMessageById(messageId);
+
+        if (deleted == null) {
+            System.out.println("❌ Message not found or already deleted: " + messageId);
+            return;
+        }
+
+        Long senderId = deleted.getSenderId();
+        Long receiverId = deleted.getReceiverId();
+
+        System.out.println("🗑 Deleting message ID: " + messageId);
+
+        // ✅ Notify both sender and receiver
+        messagingTemplate.convertAndSendToUser(senderId.toString(), "/queue/messages", new DeletedMessageDTO(messageId));
+        messagingTemplate.convertAndSendToUser(receiverId.toString(), "/queue/messages", new DeletedMessageDTO(messageId));
+    }
+
 }

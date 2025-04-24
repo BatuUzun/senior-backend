@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -70,6 +70,22 @@ public class ChatMessageService {
         return chatMessageRepository.save(message); // ✅ return saved message with ID
     }
 
+    public ChatMessage deleteMessageById(Long messageId) {
+        Optional<ChatMessage> optional = chatMessageRepository.findById(messageId);
+        if (optional.isPresent()) {
+            ChatMessage msg = optional.get();
+
+            // Option 1: delete permanently
+            chatMessageRepository.delete(msg);
+
+            // Option 2: mark as deleted (soft delete)
+            // msg.setDeleted(true);
+            // chatMessageRepository.save(msg);
+
+            return msg;
+        }
+        return null;
+    }
 
 
     public List<ConversationSummaryDTO> getConversationSummaries(Long userId) {
