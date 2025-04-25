@@ -1,6 +1,7 @@
 package com.foodrecipes.credentials.credentials.repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.foodrecipes.credentials.credentials.entity.ReviewCommentC;
+import com.foodrecipes.credentials.credentials.entity.ReviewLike;
 
 public interface ReviewCommentRepository extends JpaRepository<ReviewCommentC, Long> {    
 	@Query("""
@@ -31,5 +33,6 @@ public interface ReviewCommentRepository extends JpaRepository<ReviewCommentC, L
 		    """)
 		Page<Long> findTopPopularReviewIdsBySpotifyId(@Param("spotifyId") String spotifyId, Pageable pageable);
 
+    List<ReviewCommentC> findTop11ByUserIdInAndCreatedAtLessThanEqualOrderByCreatedAtDesc(List<Long> userIds, LocalDateTime cursor);
 
 }

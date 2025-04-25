@@ -72,5 +72,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 		List<Object[]> findTopPopularReviews();
 
 
+		List<Review> findByUserIdIn(List<Long> userIds);
+		
+		List<Review> findTop20ByUserIdInAndCreatedAtBeforeOrderByCreatedAtDesc(List<Long> userIds, LocalDateTime cursor);
+
+		List<Review> findTop11ByUserIdInAndCreatedAtLessThanEqualOrderByCreatedAtDesc(List<Long> userIds, LocalDateTime cursor);
 
 }

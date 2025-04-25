@@ -1,10 +1,12 @@
 package com.foodrecipes.credentials.credentials.restcontrollers;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.foodrecipes.credentials.credentials.dto.FollowRequestDTO;
-import com.foodrecipes.credentials.credentials.dto.UserProfileResponseProfileGetterDTO;
+import com.foodrecipes.credentials.credentials.dto.PagedResponseActivity;
 import com.foodrecipes.credentials.credentials.service.UserFollowsService;
 
 /**
@@ -116,10 +118,9 @@ public class UserFollowsController {
 	 */
 	@GetMapping("/followings")
 	public ResponseEntity<?> getFollowings(@RequestParam Long userId,
-	                                       @RequestParam(required = false) LocalDateTime cursor) {
-	    return ResponseEntity.ok(userFollowsService.getFollowings(userId, cursor));
+			@RequestParam(required = false) LocalDateTime cursor) {
+		return ResponseEntity.ok(userFollowsService.getFollowings(userId, cursor));
 	}
-
 
 	/**
 	 * Retrieves a list of followers for a user.
@@ -130,10 +131,9 @@ public class UserFollowsController {
 	 */
 	@GetMapping("/followers")
 	public ResponseEntity<?> getFollowers(@RequestParam Long userId,
-	                                      @RequestParam(required = false) LocalDateTime cursor) {
-	    return ResponseEntity.ok(userFollowsService.getFollowers(userId, cursor));
+			@RequestParam(required = false) LocalDateTime cursor) {
+		return ResponseEntity.ok(userFollowsService.getFollowers(userId, cursor));
 	}
-
 
 	/**
 	 * Retrieves a list of user IDs that a specific user is following.
@@ -145,4 +145,46 @@ public class UserFollowsController {
 	public ResponseEntity<Set<Long>> getFollowedUsers(@PathVariable Long userId) {
 		return ResponseEntity.ok(userFollowsService.getFollowedUsers(userId));
 	}
+
+	@PostMapping("/interactions")
+	public ResponseEntity<?> getUserInteractions(@RequestBody List<Long> followedUserIds,
+			@RequestParam(required = false) LocalDateTime reviewCursor,
+			@RequestParam(required = false) LocalDateTime reviewLikeCursor,
+			@RequestParam(required = false) LocalDateTime likeCursor,
+			@RequestParam(required = false) LocalDateTime commentCursor) {
+		PagedResponseActivity response = userFollowsService.getInteractionsByUserIds(followedUserIds, reviewCursor,
+				reviewLikeCursor, likeCursor, commentCursor);
+		return ResponseEntity.ok(response);
+	}
+
+	@PostMapping("/interactions/reviews")
+	public ResponseEntity<?> getReviewActivities(
+	        @RequestBody List<Long> userIds,
+	        @RequestParam(required = false)
+	        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime reviewCursor) { // <-- LocalDateTime, not OffsetDateTime
+
+	    return ResponseEntity.ok(
+	            userFollowsService.getReviewActivities(userIds, reviewCursor));
+	}
+
+    @PostMapping("/interactions/review-likes")
+    public ResponseEntity<?> getReviewLikeActivities(
+            @RequestBody List<Long> userIds,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime reviewLikeCursor) {
+
+        return ResponseEntity.ok(
+                userFollowsService.getReviewLikeActivities(userIds, reviewLikeCursor));
+    }
+
+    @PostMapping("/interactions/review-comments")
+    public ResponseEntity<?> getReviewCommentActivities(
+            @RequestBody List<Long> userIds,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime commentCursor) {
+
+        return ResponseEntity.ok(
+                userFollowsService.getReviewCommentActivities(userIds, commentCursor));
+    }
+
 }

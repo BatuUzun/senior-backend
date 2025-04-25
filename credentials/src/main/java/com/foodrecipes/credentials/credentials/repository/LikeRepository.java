@@ -1,5 +1,6 @@
 package com.foodrecipes.credentials.credentials.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,5 +27,11 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     Optional<Like> findBySpotifyIdAndUserId(String spotifyId, Long userId);
     
     Page<Like> findByUserIdAndType(Long userId, String type, Pageable pageable);
+    
+    List<Like> findByUserIdIn(List<Long> userIds);
+
+    List<Like> findTop20ByUserIdInAndCreatedAtBeforeOrderByCreatedAtDesc(List<Long> userIds, LocalDateTime cursor);
+
+    List<Like> findTop11ByUserIdInAndCreatedAtBeforeOrderByCreatedAtDesc(List<Long> userIds, LocalDateTime createdAt);
 
 }
