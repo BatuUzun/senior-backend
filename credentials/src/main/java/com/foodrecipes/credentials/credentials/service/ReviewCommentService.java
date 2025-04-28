@@ -122,7 +122,12 @@ public class ReviewCommentService {
 
 	// Map entity to response DTO
 	private ReviewCommentResponseDTO mapToResponseDTO(ReviewCommentC reviewComment) {
-		return new ReviewCommentResponseDTO(reviewComment.getId(), reviewComment.getReview().getId(),
-				reviewComment.getUserId(), reviewComment.getComment(), reviewComment.getCreatedAt());
+	    return new ReviewCommentResponseDTO(
+	            reviewComment.getId(),
+	            reviewComment.getReview().getId(),  // Make sure this isn't null
+	            reviewComment.getUserId(),
+	            reviewComment.getComment(),
+	            reviewComment.getCreatedAt()
+	    );
 	}
 }

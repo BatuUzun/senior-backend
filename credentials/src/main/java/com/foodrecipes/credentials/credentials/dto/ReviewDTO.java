@@ -6,10 +6,10 @@ public class ReviewDTO {
     private Long id;
     private Long userId;
     private String spotifyId;
-    private Integer rating;
+    private Double rating;
     private String comment;
     private LocalDateTime createdAt;
-    public ReviewDTO(Long id, Long userId, String spotifyId, Integer rating, String comment, LocalDateTime createdAt) {
+    public ReviewDTO(Long id, Long userId, String spotifyId, Double rating, String comment, LocalDateTime createdAt) {
         this.id = id;
         this.userId = userId;
         this.spotifyId = spotifyId;
@@ -50,11 +50,11 @@ public class ReviewDTO {
 		this.spotifyId = spotifyId;
 	}
 
-	public Integer getRating() {
+	public Double getRating() {
 		return rating;
 	}
 
-	public void setRating(Integer rating) {
+	public void setRating(Double rating) {
 		this.rating = rating;
 	}
 

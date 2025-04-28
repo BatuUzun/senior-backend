@@ -260,7 +260,8 @@ public class CredentialsRestController {
      *         or NOT_FOUND response if the user does not exist.
      */
     @PutMapping("/verify-email")
-    public ResponseEntity<Boolean> verifyEmail(@RequestParam String email) {
+    public ResponseEntity<Boolean> verifyEmail(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
         // Attempt to find the user by email
         Optional<User> userOptional = userService.findUserByEmail(email);
 

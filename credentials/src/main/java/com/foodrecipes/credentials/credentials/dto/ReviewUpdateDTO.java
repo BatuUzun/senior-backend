@@ -2,7 +2,7 @@ package com.foodrecipes.credentials.credentials.dto;
 
 public class ReviewUpdateDTO {
     private Long id;
-    private int rating;
+    private double rating;
     private String comment;
 
     // Getters and Setters
@@ -14,11 +14,11 @@ public class ReviewUpdateDTO {
         this.id = id;
     }
 
-    public int getRating() {
+    public double getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(double rating) {
         this.rating = rating;
     }
 
@@ -30,7 +30,7 @@ public class ReviewUpdateDTO {
         this.comment = comment;
     }
 
-	public ReviewUpdateDTO(Long id, int rating, String comment) {
+	public ReviewUpdateDTO(Long id, double rating, String comment) {
 		super();
 		this.id = id;
 		this.rating = rating;

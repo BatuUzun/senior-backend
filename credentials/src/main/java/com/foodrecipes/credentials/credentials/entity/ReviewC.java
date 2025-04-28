@@ -18,7 +18,7 @@ public class ReviewC {
     private Long userId;
 
     @Column(nullable = false)
-    private int rating;
+    private double rating;
 
     @Column(name = "spotify_id", nullable = false)
     private String spotifyId;
@@ -33,7 +33,7 @@ public class ReviewC {
     // Constructors
     public ReviewC() {}
 
-    public ReviewC(Long id, Long userId, int rating, String spotifyId, LocalDateTime createdAt) {
+    public ReviewC(Long id, Long userId, double rating, String spotifyId, LocalDateTime createdAt) {
         this.id = id;
         this.userId = userId;
         this.rating = rating;
@@ -48,8 +48,8 @@ public class ReviewC {
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
 
-    public int getRating() { return rating; }
-    public void setRating(int rating) { this.rating = rating; }
+    public double getRating() { return rating; }
+    public void setRating(double rating) { this.rating = rating; }
 
     public String getSpotifyId() { return spotifyId; }
     public void setSpotifyId(String spotifyId) { this.spotifyId = spotifyId; }

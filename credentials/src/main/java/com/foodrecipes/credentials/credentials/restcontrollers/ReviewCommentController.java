@@ -22,18 +22,23 @@ import com.foodrecipes.credentials.credentials.dto.ReviewCommentResponseDTO;
 import com.foodrecipes.credentials.credentials.dto.ReviewCommentUpdateRequestDTO;
 import com.foodrecipes.credentials.credentials.entity.ReviewCommentC;
 import com.foodrecipes.credentials.credentials.service.ReviewCommentService;
+import com.foodrecipes.credentials.credentials.entity.Review;
+import com.foodrecipes.credentials.credentials.service.ReviewService;
 
 /**
  * Controller for managing review comments.
  * Provides APIs to add, update, delete, and retrieve comments with pagination.
  */
 @RestController
-@RequestMapping("/comment")
+@RequestMapping("api/comment")
 public class ReviewCommentController {
 
     @Autowired
     private ReviewCommentService reviewCommentService;
 
+    @Autowired
+    private ReviewService reviewService;
+    
     /**
      * Adds a new comment to a review.
      *
@@ -43,12 +48,20 @@ public class ReviewCommentController {
     @PostMapping("/add-comment")
     public ResponseEntity<?> addComment(@RequestBody ReviewCommentRequestDTO requestDTO) {
         try {
+            // Verify the review exists
+            Review review = reviewService.getReviewById(requestDTO.getReviewId());
+            if (review == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Review not found");
+            }
+            
             ReviewCommentResponseDTO reviewComment = reviewCommentService.addComment(requestDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(reviewComment);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to add comment.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                               .body("Failed to add comment: " + e.getMessage());
         }
     }
 
@@ -79,7 +92,10 @@ public class ReviewCommentController {
     @PutMapping("/update-comment")
     public ResponseEntity<?> updateComment(@RequestBody ReviewCommentUpdateRequestDTO requestDTO) {
         try {
-            ReviewCommentResponseDTO updatedComment = reviewCommentService.updateComment(requestDTO.getCommentId(), requestDTO);
+            ReviewCommentResponseDTO updatedComment = reviewCommentService.updateComment(
+                requestDTO.getCommentId(), 
+                requestDTO
+            );
             return ResponseEntity.ok(updatedComment);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -102,25 +118,36 @@ public class ReviewCommentController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime referenceTime) {
         try {
+            // Verify the review exists
+            Review review = reviewService.getReviewById(reviewId);
+            if (review == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Review not found");
+            }
+
             // Default reference time to current timestamp if not provided
             if (referenceTime == null) {
                 referenceTime = LocalDateTime.now();
             }
 
-            // Fetch comments with pagination
-            Page<ReviewCommentC> comments = reviewCommentService.getCommentsByReviewId(reviewId, referenceTime, page);
+            Page<ReviewCommentC> comments = reviewCommentService.getCommentsByReviewId(
+                reviewId, 
+                referenceTime, 
+                page
+            );
 
             if (comments.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No comments found for review ID " + reviewId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No comments found for review ID " + reviewId);
             }
 
-            // ✅ Convert entity to DTO before returning response
             Page<ReviewCommentResponseDTO> commentDTOs = comments.map(this::mapToDTO);
             return ResponseEntity.ok(commentDTOs);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to fetch comments.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                               .body("Failed to fetch comments: " + e.getMessage());
         }
     }
 
@@ -133,7 +160,7 @@ public class ReviewCommentController {
     private ReviewCommentResponseDTO mapToDTO(ReviewCommentC reviewComment) {
         return new ReviewCommentResponseDTO(
                 reviewComment.getId(),
-                reviewComment.getReview().getId(), // Get the review ID
+                reviewComment.getReview().getId(),
                 reviewComment.getUserId(),
                 reviewComment.getComment(),
                 reviewComment.getCreatedAt()

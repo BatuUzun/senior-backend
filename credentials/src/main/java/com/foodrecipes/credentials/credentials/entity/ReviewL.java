@@ -20,7 +20,7 @@ public class ReviewL {
     private Long userId;
 
     @Column(nullable = false)
-    private int rating;
+    private double rating;
 
     @Column
     private String comment;
@@ -47,11 +47,11 @@ public class ReviewL {
 		this.userId = userId;
 	}
 
-	public int getRating() {
+	public double getRating() {
 		return rating;
 	}
 
-	public void setRating(int rating) {
+	public void setRating(double rating) {
 		this.rating = rating;
 	}
 
@@ -79,7 +79,7 @@ public class ReviewL {
 		this.createdAt = createdAt;
 	}
 
-	public ReviewL(Long id, Long userId, int rating, String comment, String spotifyId, LocalDateTime createdAt) {
+	public ReviewL(Long id, Long userId, double rating, String comment, String spotifyId, LocalDateTime createdAt) {
 		super();
 		this.id = id;
 		this.userId = userId;
