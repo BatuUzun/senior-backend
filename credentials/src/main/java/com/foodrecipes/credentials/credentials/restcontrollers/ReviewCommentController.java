@@ -124,7 +124,7 @@ public class ReviewCommentController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Review not found");
             }
-
+System.out.println("page:"+page);
             // Default reference time to current timestamp if not provided
             if (referenceTime == null) {
                 referenceTime = LocalDateTime.now();
@@ -165,5 +165,10 @@ public class ReviewCommentController {
                 reviewComment.getComment(),
                 reviewComment.getCreatedAt()
         );
+    }
+    
+    @GetMapping("/count/{reviewId}")
+    public long getCommentCount(@PathVariable Long reviewId) {
+        return reviewCommentService.countCommentsByReviewId(reviewId);
     }
 }

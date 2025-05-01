@@ -17,12 +17,15 @@ public interface ReviewCommentRepository extends JpaRepository<ReviewCommentC, L
 		    SELECT rc FROM ReviewCommentC rc
 		    WHERE rc.review.id = :reviewId
 		    AND rc.createdAt <= :referenceTime
-		    ORDER BY rc.createdAt ASC, rc.id ASC
+		    ORDER BY rc.createdAt DESC, rc.id DESC
 		""")
 		Page<ReviewCommentC> findByReviewIdWithReference(
-		        @Param("reviewId") Long reviewId,
-		        @Param("referenceTime") LocalDateTime referenceTime,
-		        Pageable pageable);
+		    @Param("reviewId") Long reviewId,
+		    @Param("referenceTime") LocalDateTime referenceTime,
+		    Pageable pageable
+		);
+
+
 	
 	@Query("""
 		    SELECT rc.review.id
@@ -36,5 +39,8 @@ public interface ReviewCommentRepository extends JpaRepository<ReviewCommentC, L
     List<ReviewCommentC> findTop11ByUserIdInAndCreatedAtLessThanEqualOrderByCreatedAtDesc(List<Long> userIds, LocalDateTime cursor);
 
     void deleteByUserId(Long userId);
+    
+    long countByReviewId(Long reviewId);
+
 
 }

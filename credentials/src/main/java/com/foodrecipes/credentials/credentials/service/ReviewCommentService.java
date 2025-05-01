@@ -105,7 +105,7 @@ public class ReviewCommentService {
 		validateReviewExists(reviewId);
 
 		Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE,
-				Sort.by(Sort.Direction.ASC, "createdAt").and(Sort.by(Sort.Direction.ASC, "id")));
+				Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id")));
 		return reviewCommentRepository.findByReviewIdWithReference(reviewId, referenceTime, pageable);
 	}
 
@@ -130,4 +130,8 @@ public class ReviewCommentService {
 	            reviewComment.getCreatedAt()
 	    );
 	}
+	
+	public long countCommentsByReviewId(Long reviewId) {
+        return reviewCommentRepository.countByReviewId(reviewId);
+    }
 }
