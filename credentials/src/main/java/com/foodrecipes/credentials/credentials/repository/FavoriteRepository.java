@@ -31,4 +31,7 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
     List<Favorite> findTop4ByUserIdAndType(@Param("userId") Long userId, @Param("type") String type, Pageable pageable);
     
     List<Favorite> findByUserIdAndType(Long userId, String type);
+    
+    void deleteByUserId(Long userId);
+
 }

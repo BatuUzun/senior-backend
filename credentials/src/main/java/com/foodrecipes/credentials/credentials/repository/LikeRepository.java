@@ -34,4 +34,6 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
 
     List<Like> findTop11ByUserIdInAndCreatedAtBeforeOrderByCreatedAtDesc(List<Long> userIds, LocalDateTime createdAt);
 
+    void deleteByUserId(Long userId);
+
 }

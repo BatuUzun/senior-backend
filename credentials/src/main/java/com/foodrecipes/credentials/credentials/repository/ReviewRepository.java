@@ -78,4 +78,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
 		List<Review> findTop11ByUserIdInAndCreatedAtLessThanEqualOrderByCreatedAtDesc(List<Long> userIds, LocalDateTime cursor);
 
+		void deleteByUserId(Long userId);
+
 }

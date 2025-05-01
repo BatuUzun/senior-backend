@@ -26,4 +26,6 @@ public interface ReviewLikeRepository extends JpaRepository<ReviewLike, Long> {
 
         List<ReviewLike> findTop11ByUserIdInAndCreatedAtLessThanEqualOrderByCreatedAtDesc(List<Long> userIds, LocalDateTime cursor);
 
+        void deleteByUserId(Long userId);
+
 }

@@ -51,6 +51,7 @@ public interface UserFollowsRepository extends JpaRepository<UserFollow, Long> {
     	);
 
 
+    void deleteByFollowerIdOrFollowedId(Long followerId, Long followedId);
 
 
 

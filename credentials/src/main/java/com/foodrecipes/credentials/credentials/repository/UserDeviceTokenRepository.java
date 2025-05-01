@@ -8,4 +8,7 @@ import com.foodrecipes.credentials.credentials.entity.UserDeviceToken;
 
 public interface UserDeviceTokenRepository extends JpaRepository<UserDeviceToken, Long> {
     Optional<UserDeviceToken> findByUserId(Long userId);
+    
+    void deleteByUserId(Long userId);
+
 }

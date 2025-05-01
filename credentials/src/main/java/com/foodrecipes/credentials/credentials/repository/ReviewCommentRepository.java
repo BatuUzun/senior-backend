@@ -35,4 +35,6 @@ public interface ReviewCommentRepository extends JpaRepository<ReviewCommentC, L
 
     List<ReviewCommentC> findTop11ByUserIdInAndCreatedAtLessThanEqualOrderByCreatedAtDesc(List<Long> userIds, LocalDateTime cursor);
 
+    void deleteByUserId(Long userId);
+
 }
