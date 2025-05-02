@@ -11,14 +11,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.foodrecipes.credentials.credentials.constants.Constants;
 import com.foodrecipes.credentials.credentials.dto.LikeActivityDTO;
-import com.foodrecipes.credentials.credentials.dto.PagedResponse;
 import com.foodrecipes.credentials.credentials.dto.PagedResponseActivity;
+import com.foodrecipes.credentials.credentials.dto.PagedResponseFollow;
 import com.foodrecipes.credentials.credentials.dto.PagedReviewResponse;
 import com.foodrecipes.credentials.credentials.dto.ReviewCommentActivityDTO;
 import com.foodrecipes.credentials.credentials.dto.ReviewDTO;
@@ -112,7 +114,7 @@ public class UserFollowsService {
     private UserProfileService userProfileService;
 
 
-    public PagedResponse<UserProfileResponseProfileGetterDTO> getFollowings(Long userId, LocalDateTime cursor) {
+    /*public PagedResponse<UserProfileResponseProfileGetterDTO> getFollowings(Long userId, LocalDateTime cursor) {
         if (cursor == null) {
             cursor = LocalDateTime.of(2000, 1, 1, 0, 0);
         }
@@ -126,10 +128,28 @@ public class UserFollowsService {
             : null;
 
         return new PagedResponse<>(profiles, nextCursor);
+    }*/
+    public PagedResponseFollow<UserProfileResponseProfileGetterDTO> getFollowings(Long userId, int page) {
+        Page<UserFollowProjection> projectionsPage = userFollowsRepository.findFollowingsByUserId(
+            userId,
+            PageRequest.of(page, Constants.PAGE_SIZE)
+        );
+
+        List<Long> userIds = projectionsPage.stream()
+            .map(UserFollowProjection::getUserId)
+            .collect(Collectors.toList());
+
+        List<UserProfileResponseProfileGetterDTO> profiles = userProfileService.getUserProfilesByIds(userIds);
+
+        Integer nextPage = projectionsPage.hasNext() ? page + 1 : null;
+
+        return new PagedResponseFollow<>(profiles, nextPage);
     }
 
 
-	public PagedResponse<UserProfileResponseProfileGetterDTO> getFollowers(Long userId, LocalDateTime cursor) {
+
+
+	/*public PagedResponse<UserProfileResponseProfileGetterDTO> getFollowers(Long userId, LocalDateTime cursor) {
 	    if (cursor == null) {
 	        cursor = LocalDateTime.of(2000, 1, 1, 0, 0);
 	    }
@@ -143,7 +163,18 @@ public class UserFollowsService {
 	        : null;
 
 	    return new PagedResponse<>(profiles, nextCursor);
-	}
+	}*/
+    public PagedResponseFollow<UserProfileResponseProfileGetterDTO> getFollowers(Long userId, int page) {
+        Pageable pageable = PageRequest.of(page, Constants.PAGE_SIZE);
+        Page<UserFollowProjection> projectionPage = userFollowsRepository.findFollowersByUserId(userId, pageable);
+
+        List<Long> userIds = projectionPage.stream().map(UserFollowProjection::getUserId).toList();
+        List<UserProfileResponseProfileGetterDTO> profiles = userProfileService.getUserProfilesByIds(userIds);
+
+        Integer nextPage = projectionPage.hasNext() ? page + 1 : null;
+        return new PagedResponseFollow<>(profiles, nextPage);
+    }
+
 
 
 	public Set<Long> getFollowedUsers(Long userId) {

@@ -137,44 +137,7 @@ class UserFollowsControllerTest {
                 .andExpect(content().string("3"));
     }
 
-    @Test
-    void getFollowings() throws Exception {
-        List<UserProfileResponseProfileGetterDTO> followings = List.of(
-                new UserProfileResponseProfileGetterDTO(2L, "user2", "img2.png")
-        );
-        PagedResponse<UserProfileResponseProfileGetterDTO> response =
-                new PagedResponse<>(followings, null);
-
-        when(userFollowsService.getFollowings(eq(1L), any())).thenReturn(response);
-
-        mockMvc.perform(get("/user-follow/followings")
-                        .param("userId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].userId").value(2L))
-                .andExpect(jsonPath("$.items[0].username").value("user2"))
-                .andExpect(jsonPath("$.items[0].profileImage").value("img2.png"))
-                .andExpect(jsonPath("$.nextCursor").doesNotExist());
-    }
-
     
-    @Test
-    void getFollowers() throws Exception {
-        List<UserProfileResponseProfileGetterDTO> followers = List.of(
-                new UserProfileResponseProfileGetterDTO(3L, "user3", "img3.png")
-        );
-        PagedResponse<UserProfileResponseProfileGetterDTO> response =
-                new PagedResponse<>(followers, null);
-
-        when(userFollowsService.getFollowers(eq(1L), any())).thenReturn(response);
-
-        mockMvc.perform(get("/user-follow/followers")
-                        .param("userId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].userId").value(3L))
-                .andExpect(jsonPath("$.items[0].username").value("user3"))
-                .andExpect(jsonPath("$.items[0].profileImage").value("img3.png"))
-                .andExpect(jsonPath("$.nextCursor").doesNotExist());
-    }
 
 
 

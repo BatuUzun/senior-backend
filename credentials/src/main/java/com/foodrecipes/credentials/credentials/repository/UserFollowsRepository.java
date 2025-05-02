@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -40,6 +41,13 @@ public interface UserFollowsRepository extends JpaRepository<UserFollow, Long> {
         @Param("cursor") LocalDateTime cursor,
         @Param("limit") int limit
     );
+    @Query("SELECT u.followerId AS userId, u.dateFollowed AS dateFollowed " +
+    	       "FROM UserFollow u WHERE u.followedId = :userId " +
+    	       "ORDER BY u.dateFollowed DESC")
+    	Page<UserFollowProjection> findFollowersByUserId(
+    	    @Param("userId") Long userId,
+    	    Pageable pageable
+    	);
 
     @Query("SELECT u.followedId AS userId, u.dateFollowed AS dateFollowed " +
     	       "FROM UserFollow u WHERE u.followerId = :userId AND u.dateFollowed > :cursor " +
@@ -47,6 +55,14 @@ public interface UserFollowsRepository extends JpaRepository<UserFollow, Long> {
     	List<UserFollowProjection> findFollowingsWithCursor(
     	    @Param("userId") Long userId,
     	    @Param("cursor") LocalDateTime cursor,
+    	    Pageable pageable
+    	);
+
+    @Query("SELECT u.followedId AS userId, u.dateFollowed AS dateFollowed " +
+    	       "FROM UserFollow u WHERE u.followerId = :userId " +
+    	       "ORDER BY u.dateFollowed DESC")
+    	Page<UserFollowProjection> findFollowingsByUserId(
+    	    @Param("userId") Long userId,
     	    Pageable pageable
     	);
 

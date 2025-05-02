@@ -118,9 +118,11 @@ public class UserFollowsController {
 	 */
 	@GetMapping("/followings")
 	public ResponseEntity<?> getFollowings(@RequestParam Long userId,
-			@RequestParam(required = false) LocalDateTime cursor) {
-		return ResponseEntity.ok(userFollowsService.getFollowings(userId, cursor));
+	                                       @RequestParam(defaultValue = "0") int page) {
+	    return ResponseEntity.ok(userFollowsService.getFollowings(userId, page));
 	}
+
+
 
 	/**
 	 * Retrieves a list of followers for a user.
@@ -131,9 +133,10 @@ public class UserFollowsController {
 	 */
 	@GetMapping("/followers")
 	public ResponseEntity<?> getFollowers(@RequestParam Long userId,
-			@RequestParam(required = false) LocalDateTime cursor) {
-		return ResponseEntity.ok(userFollowsService.getFollowers(userId, cursor));
+	                                      @RequestParam(defaultValue = "0") int page) {
+	    return ResponseEntity.ok(userFollowsService.getFollowers(userId, page));
 	}
+
 
 	/**
 	 * Retrieves a list of user IDs that a specific user is following.
