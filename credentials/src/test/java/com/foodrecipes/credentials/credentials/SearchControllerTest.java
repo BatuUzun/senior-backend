@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
@@ -45,10 +46,14 @@ class SearchControllerTest {
         user.setUsername("john");
         user.setProfileImage("img.png");
 
-        when(userProfileService.searchUsers("john")).thenReturn(Collections.singletonList(user));
+        // Offset = 0, Limit = 10 -> PageRequest.of(0, 10)
+        when(userProfileService.searchUsers(eq("john"), eq(PageRequest.of(0, 10))))
+            .thenReturn(Collections.singletonList(user));
 
         mockMvc.perform(post("/search-profile/search")
-                        .param("username", "john"))
+                        .param("username", "john")
+                        .param("offset", "0")
+                        .param("limit", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].username").value("john"))
                 .andExpect(jsonPath("$[0].profileImage").value("img.png"));
@@ -56,10 +61,13 @@ class SearchControllerTest {
 
     @Test
     void testSearchUserProfiles_returnsEmptyList() throws Exception {
-        when(userProfileService.searchUsers("noone")).thenReturn(Collections.emptyList());
+        when(userProfileService.searchUsers(eq("noone"), eq(PageRequest.of(0, 10))))
+            .thenReturn(Collections.emptyList());
 
         mockMvc.perform(post("/search-profile/search")
-                        .param("username", "noone"))
+                        .param("username", "noone")
+                        .param("offset", "0")
+                        .param("limit", "10"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
     }

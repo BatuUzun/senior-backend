@@ -1,5 +1,6 @@
 package com.foodrecipes.credentials.credentials.restcontrollers;
-
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,13 +34,20 @@ public class SearchController {
      * @return A list of UserProfile objects that match the search criteria.
      */
     @PostMapping("/search")
-    public List<UserProfileSearch> searchUserProfiles(@RequestParam("username") String username) {
+    public List<UserProfileSearch> searchUserProfiles(
+        @RequestParam("username") String username,
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @RequestParam(value = "limit", defaultValue = "10") int limit
+    ) {
         // Retrieve the port the service is running on for debugging purposes
         String port = environment.getProperty("local.server.port");
         System.out.println("port: " + port);
 
+        // Pagination için PageRequest oluştur
+        Pageable pageable = PageRequest.of(offset / limit, limit);
+
         // Search for users matching the provided username
-        List<UserProfileSearch> list = userProfileService.searchUsers(username);
+        List<UserProfileSearch> list = userProfileService.searchUsers(username, pageable);
 
         // Debugging: Print profile images of retrieved user profiles
         for (UserProfileSearch userProfile : list) {
